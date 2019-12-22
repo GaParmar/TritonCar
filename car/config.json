@@ -1,0 +1,9 @@
+{
+    "log_path"              : "",
+    "refresh_time"          : 0.01,
+    "camera_id"             : 0,
+    "tolerance_time"        : 0.1,
+    "throttle_allowance"    : 25,
+    "steer_allowance"       : 25,
+    "samples_per_file"      : 100
+}
