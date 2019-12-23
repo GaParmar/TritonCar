@@ -19,7 +19,7 @@ if __name__ == "__main__":
     log_buffer = []
 
     # ensure that log dir does not exist
-    if not os.path.exists(config["log_path"])
+    if not os.path.exists(config["log_path"]):
         os.makedirs(config["log_path"])
         log_counter = 0
     else:
