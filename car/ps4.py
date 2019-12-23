@@ -10,13 +10,13 @@ def update_inputs(dev, data):
             data["timestamp"] = time.time()
             if event.type == 1:
                 if(event.code == 304):
-                    data["cross"] = event.value
-                if(event.code == 308):
                     data["square"] = event.value
+                if(event.code == 306):
+                    data["circle"] = event.value
                 if(event.code == 307):
                     data["triangle"] = event.value
                 if(event.code == 305):
-                    data["circle"] = event.value
+                    data["cross"] = event.value
 
             # 0 to 255
             elif(event.type == 3):
@@ -49,7 +49,13 @@ class PS4Interface:
             "timestamp":time.time()
         })
 
-        dev = InputDevice("/dev/input/js0")
+        devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+        path=None
+        for device in devices:
+            if("Wireless Controller" in device.name):
+                path = device.path
+
+        dev = InputDevice(path)
 
         socket_process = Process(target=update_inputs, args=(dev, self.data))
         socket_process.start()
