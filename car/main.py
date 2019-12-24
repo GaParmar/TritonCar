@@ -24,9 +24,6 @@ if __name__ == "__main__":
     # load trained model weights
     if CAR_MODEL_PATH is not None:
         pass
-        # state_vae = VAE()
-        # auto_model = KerasLinear(input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
-        # auto_model.model.load_weights(CAR_MODEL_PATH)
     else:
         auto_model = None
 
@@ -55,6 +52,8 @@ if __name__ == "__main__":
         ts_start = time.time()
 
         status, img = camera.read()
+        # BGR to RGB
+        img = img[:,:,::-1]
         assert status
 
         curr_data = {
@@ -78,7 +77,7 @@ if __name__ == "__main__":
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
             else:
-                curr_data["throttle"] = ((int(ps4.data["ly"])-128)/128)*-CAR_THROTTLE_ALLOWANCE + 90
+                curr_data["throttle"] = ((int(ps4.data["ly"])-128)/128)*CAR_THROTTLE_ALLOWANCE + 90
                 curr_data["steer"] = ((int(ps4.data["rx"])-128)/128)*CAR_STEER_ALLOWANCE + 90
             
                 if logging:
@@ -95,14 +94,8 @@ if __name__ == "__main__":
         elif state == "autonomous":
             
             if auto_model is not None:
-                t_img = norm_split(Image.fromarray(img[:,:,::-1]))
-                # throttle, steer = auto_model.run(t_img)
-                ## VAE FORW PASS
-                state = state_vae.only_encode(t_img)
-                
-
-                curr_data["throttle"] = throttle
-                curr_data["steer"] = steer
+                t_img = norm_split(Image.fromarray(img))
+                pass
             else:
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
@@ -110,7 +103,7 @@ if __name__ == "__main__":
         else:
             raise ValueError(f"state {state} not implemented yet")
 
-        print(curr_data["throttle"], curr_data["steer"])
+        print(curr_data["throttle"], curr_data["steer"], f"logging={logging}")
         # print(state, curr_data)
         curr_data["timestamp"] = time.time()
         # send control to the motors
