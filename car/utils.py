@@ -1,12 +1,18 @@
 import os
 import pickle
 
-def parse_packet(pkt):
-    data = {}
+def parse_packet(pkt, data):
     pkt = pkt.decode("utf-8") 
     for token in pkt.split():
         if ":" in token:
-            data[token.split(":")[0]] = token.split(":")[1]
+            key = token.split(":")[0]
+            value = token.split(":")[1]
+            if key in ["cross", "square", "triangle", "circle"]:
+                value = value == "001"
+            else:
+                value = int(value)
+            data[key] = value
+
     return data
 
 def save_to_file(dname, counter, buff):

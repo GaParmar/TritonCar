@@ -1,5 +1,6 @@
 {
     "log_path"              : "/media/usb/LOG/test",
+    "controller_type"       : "websocket_TCP",
     "refresh_time"          : 0.04,
     "camera_id"             : 0,
     "tolerance_time"        : 0.1,

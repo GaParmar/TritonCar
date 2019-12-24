@@ -12,7 +12,7 @@ if __name__ == "__main__":
     with open('config.json') as json_file:
         config = json.load(json_file)
 
-    ps4 = PS4Interface()
+    ps4 = PS4Interface(connection_type=config["controller_type"])
     camera = cv2.VideoCapture(config["camera_id"])
     motor = ArduinoMotor()
     log_buffer = []
@@ -46,13 +46,12 @@ if __name__ == "__main__":
             "timestamp": -1,
             "image"    : img
         }
-
         logging = False if ps4.data["square"] else logging
         state = "manual" if ps4.data["cross"] else state
         state = "autonomous" if ps4.data["circle"] else state
         logging = True if ps4.data["triangle"] else logging
 
-        
+        print(ps4.data)
         if state == "manual":
             # parse the ps4 data
             # ensure that data is not very stale
@@ -61,8 +60,8 @@ if __name__ == "__main__":
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
             else:
-                curr_data["throttle"] = ((ps4.data["ly"]-128)/128)*config["throttle_allowance"] + 90
-                curr_data["steer"] = ((ps4.data["rx"]-128)/128)*config["steer_allowance"] + 90
+                curr_data["throttle"] = ((int(ps4.data["ly"])-128)/128)*config["throttle_allowance"] + 90
+                curr_data["steer"] = ((int(ps4.data["rx"])-128)/128)*config["steer_allowance"] + 90
             
                 if logging:
                     log_buffer.append(curr_data)
@@ -73,6 +72,7 @@ if __name__ == "__main__":
                         log_counter += 1
 
         elif state == "autonomous":
+            raise ValueError(ps4.data)
             curr_data["throttle"] = 90
             curr_data["steer"] = 90
 
@@ -80,7 +80,7 @@ if __name__ == "__main__":
             raise ValueError(f"state {state} not implemented yet")
 
         # print(state, logging, curr_data["throttle"], curr_data["steer"])
-        # print(ps4.data)
+        # print(state, curr_data)
         # send control to the motors
         motor.send_data(curr_data)
 

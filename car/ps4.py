@@ -25,7 +25,7 @@ def update_inputs(dev, data):
 
             # 0 to 255
             elif(event.type == 3):
-                elif(event.code == 1):
+                if(event.code == 1):
                     data["ly"] = event.value
                 elif(event.code == 2):
                     data["rx"] = event.value
@@ -35,7 +35,7 @@ def update_inputs(dev, data):
     loop.run_forever()
 
 
-def read_controller_socket(conn_type="TCP", frequency=20, port=8080):
+def read_controller_socket(data, conn_type="TCP", frequency=20, port=8080):
     if conn_type=="UDP":
         raise ValueError("do not use UDP sockets")
     elif conn_type=="TCP":
@@ -44,31 +44,10 @@ def read_controller_socket(conn_type="TCP", frequency=20, port=8080):
         while True:
             start = time.time()
             pkt = s.recv(128)
-            print(parse_packet(pkt))
+            parse_packet(pkt, data)
+            data["timestamp"] = time.time()
             while time.time()<(start+1.0/frequency):
                 pass
-
-    
-    # while True:
-    #     start = time.time()
-    #     print("receiving")
-    #     data_raw,addr = socket.recvfrom(512)
-    #     print("received")
-    #     socket_data = json.loads(data_raw)
-    #     for key, value in socket_data:
-    #         d[key] = value
-    #     # ensure data is more that 0.5 seconds old, reset to center
-    #     if abs(d["timestamp"]-time.time()) > 0.5:
-    #         d["ly"] = 128
-    #         d["rx"] = 128
-    #         # invalid data do not use for training
-    #         d["timestamp"] = -1
-    #         print("OLD DATA FROM SOCKET")
-    #     else:
-    #         # override the timestamp to current timestamp
-    #         d["timestamp"] = time.time()
-    #     while time.time()-start<(1.0/frequency):
-    #         pass
 
 
 class PS4Interface:
@@ -94,6 +73,6 @@ class PS4Interface:
             controller_process = Process(target=update_inputs, args=(dev, self.data))
         
         elif connection_type=="websocket_TCP":
-            controller_process = Process(target=read_controller_socket, args=())
+            controller_process = Process(target=read_controller_socket, args=(self.data,))
             
         controller_process.start()
