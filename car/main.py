@@ -38,7 +38,6 @@ if __name__ == "__main__":
 
         status, img = camera.read()
         assert status
-        img = None
 
         curr_data = {
             "throttle" : -1,
@@ -60,7 +59,7 @@ if __name__ == "__main__":
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
             else:
-                curr_data["throttle"] = ((int(ps4.data["ly"])-128)/128)*config["throttle_allowance"] + 90
+                curr_data["throttle"] = ((int(ps4.data["ly"])-128)/128)*-config["throttle_allowance"] + 90
                 curr_data["steer"] = ((int(ps4.data["rx"])-128)/128)*config["steer_allowance"] + 90
             
                 if logging:
