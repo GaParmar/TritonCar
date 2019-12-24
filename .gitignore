@@ -1,0 +1,4 @@
+*.pyc
+*.pyo
+car/__pycache__/*
+car/__pycache__/utils.cpython-37.pyc

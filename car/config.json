@@ -1,10 +1,10 @@
 {
-    "log_path"              : "/media/usb/LOG/test",
+    "log_path"              : "/media/usb/LOG/lab335_0",
     "controller_type"       : "websocket_TCP",
     "refresh_time"          : 0.04,
     "camera_id"             : 0,
     "tolerance_time"        : 0.1,
     "throttle_allowance"    : 25,
-    "steer_allowance"       : 25,
+    "steer_allowance"       : 35,
     "samples_per_file"      : 100
 }
