@@ -3,14 +3,34 @@ import json, pdb
 import cv2
 from copy import deepcopy
 
+from PIL import Image
+import numpy as np
+
 from motor import *
 from ps4 import *
 from utils import *
 
+from server.network import *
+
+def norm_split(img):
+    left = np.array(img.crop((0,0,320,240)).resize([160,120]))
+    right = np.array(img.crop((320,0,640,240)).resize([160,120]))
+    img = np.concatenate((left,right), axis=2).astype(np.float32)
+    # normalize to range [0,1] from [0,255]
+    # img /= 255.0
+    return img
+
 if __name__ == "__main__":
     # load parameters from config.json file
-    with open('config.json') as json_file:
+    with open('car/config.json') as json_file:
         config = json.load(json_file)
+    
+    # load trained model weights
+    model_path = config["trained_model_path"]
+    auto_model = None
+    if model_path is not None:
+        auto_model = KerasLinear()
+        auto_model.model.load_weights(model_path)
 
     ps4 = PS4Interface(connection_type=config["controller_type"])
     camera = cv2.VideoCapture(config["camera_id"])
@@ -50,7 +70,7 @@ if __name__ == "__main__":
         state = "autonomous" if ps4.data["circle"] else state
         logging = True if ps4.data["triangle"] else logging
 
-        print(ps4.data)
+        # print(ps4.data)
         if state == "manual":
             # parse the ps4 data
             # ensure that data is not very stale
@@ -71,14 +91,21 @@ if __name__ == "__main__":
                         log_counter += 1
 
         elif state == "autonomous":
-            raise ValueError(ps4.data)
-            curr_data["throttle"] = 90
-            curr_data["steer"] = 90
+            if auto_model is not None:
+                t_img = norm_split(Image.fromarray(img))
+                throttle, steer = auto_model.run(t_img)
+                curr_data["throttle"] = throttle
+                curr_data["steer"] = steer
+            else:
+                curr_data["throttle"] = 90
+                curr_data["steer"] = 90
+            # curr_data["throttle"] = 90
+            # curr_data["steer"] = 90
 
         else:
             raise ValueError(f"state {state} not implemented yet")
 
-        # print(state, logging, curr_data["throttle"], curr_data["steer"])
+        print(curr_data["throttle"], curr_data["steer"])
         # print(state, curr_data)
         curr_data["timestamp"] = time.time()
         # send control to the motors
