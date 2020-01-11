@@ -1,6 +1,6 @@
 {
-    "log_path"              : "",
-    "refresh_time"          : 0.01,
+    "log_path"              : "/media/usb/LOG/test",
+    "refresh_time"          : 0.04,
     "camera_id"             : 0,
     "tolerance_time"        : 0.1,
     "throttle_allowance"    : 25,

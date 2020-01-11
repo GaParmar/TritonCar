@@ -13,13 +13,13 @@ def update_inputs(dev, data):
             data["timestamp"] = time.time()
             if event.type == 1:
                 if(event.code == 304):
-                    data["cross"] = event.value
-                if(event.code == 308):
                     data["square"] = event.value
+                if(event.code == 306):
+                    data["circle"] = event.value
                 if(event.code == 307):
                     data["triangle"] = event.value
                 if(event.code == 305):
-                    data["circle"] = event.value
+                    data["cross"] = event.value
 
             # 0 to 255
             elif(event.type == 3):
@@ -36,9 +36,14 @@ def update_inputs(dev, data):
 def read_controller_socket(conn_type="TCP", frequency=20, port=8080):
     if conn_type=="UDP":
         socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        socket.bind(('', port))
     else:
         socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket.bind(('', port))
+        socket.bind(('', port))
+        socket.listen()
+        socket,addr = socket.accept()
+        print(socket, addr)
+    
     while True:
         start = time.time()
         print("receiving")
@@ -49,7 +54,7 @@ def read_controller_socket(conn_type="TCP", frequency=20, port=8080):
             d[key] = value
         # ensure data is more that 0.5 seconds old, reset to center
         if abs(d["timestamp"]-time.time()) > 0.5:
-            d["lx"] = 128
+            d["ly"] = 128
             d["rx"] = 128
             # invalid data do not use for training
             d["timestamp"] = -1
@@ -69,15 +74,18 @@ class PS4Interface:
             "square": 0,
             "triangle": 0,
             "circle": 0,
-            "lx": 128,
             "ly": 128,
-            "rx": 128,
-            "ry": 128, 
+            "rx": 128, 
             "timestamp":time.time()
         })
 
         if connection_type=="bluetooth":
-            dev = InputDevice("/dev/input/js0")
+            devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+            path=None
+            for device in devices:
+                if("Wireless Controller" in device.name):
+                    path = device.path
+            dev = InputDevice(path)
             controller_process = Process(target=update_inputs, args=(dev, self.data))
 
         elif connection_type=="websocket_UDP":
@@ -88,7 +96,5 @@ class PS4Interface:
             # SOCK_STREAM defines a TCP connection
             socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             socket.bind('',8080)
-
-
         
         controller_process.start()

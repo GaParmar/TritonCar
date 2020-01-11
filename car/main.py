@@ -1,8 +1,7 @@
-import os
-import sys
-import time
-import json
-import pdb
+import os, sys, time
+import json, pdb
+import cv2
+from copy import deepcopy
 
 from motor import *
 from ps4 import *
@@ -17,6 +16,7 @@ if __name__ == "__main__":
     camera = cv2.VideoCapture(config["camera_id"])
     motor = ArduinoMotor()
     log_buffer = []
+    log_counter=0
 
     # ensure that log dir does not exist
     if not os.path.exists(config["log_path"]):
@@ -26,9 +26,7 @@ if __name__ == "__main__":
         # find the file index to continue from
         for f in os.listdir(config["log_path"]):
             val = int(f.split("_")[1].split(".")[0])
-            log_counter = max(val+1, log_file_counter)
-
-    pdb.set_trace()
+            log_counter = max(val+1, log_counter)
 
     # start in manual mode
     state = "manual"
@@ -40,6 +38,7 @@ if __name__ == "__main__":
 
         status, img = camera.read()
         assert status
+        img = None
 
         curr_data = {
             "throttle" : -1,
@@ -53,10 +52,12 @@ if __name__ == "__main__":
         state = "autonomous" if ps4.data["circle"] else state
         logging = True if ps4.data["triangle"] else logging
 
+        
         if state == "manual":
             # parse the ps4 data
             # ensure that data is not very stale
             if ps4.data["timestamp"]-time.time() > config["tolerance_time"]:
+                print("exceeded tolerance")
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
             else:
@@ -66,10 +67,10 @@ if __name__ == "__main__":
                 if logging:
                     log_buffer.append(curr_data)
                     if len(log_buffer)==config["samples_per_file"]:
-                        p = Process(target=save_to_file, args=(log_dir, log_counter, deepcopy(log_buffer)))
+                        p = Process(target=save_to_file, args=(config["log_path"], log_counter, deepcopy(log_buffer)))
                         p.start()
                         log_buffer = []
-                        log_file_counter += 1
+                        log_counter += 1
 
         elif state == "autonomous":
             curr_data["throttle"] = 90
@@ -78,6 +79,8 @@ if __name__ == "__main__":
         else:
             raise ValueError(f"state {state} not implemented yet")
 
+        # print(state, logging, curr_data["throttle"], curr_data["steer"])
+        # print(ps4.data)
         # send control to the motors
         motor.send_data(curr_data)
 
@@ -87,5 +90,3 @@ if __name__ == "__main__":
             # busy wait while time requirement is met
             while time.time() < (ts_start+config["refresh_time"]):
                 pass
-
-
