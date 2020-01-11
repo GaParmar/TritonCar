@@ -4,6 +4,9 @@ import evdev
 from evdev import InputDevice, categorize, ecodes
 from multiprocessing import Process, Manager
 
+import socket
+import json
+
 def update_inputs(dev, data):
     async def update_inputs(dev, data):
         async for event in dev.async_read_loop():
@@ -20,22 +23,46 @@ def update_inputs(dev, data):
 
             # 0 to 255
             elif(event.type == 3):
-                if(event.code == 0):
-                    data["lx"] = event.value
                 elif(event.code == 1):
                     data["ly"] = event.value
                 elif(event.code == 2):
                     data["rx"] = event.value
-                elif(event.code == 5):
-                    data["ry"] = event.value
 
     asyncio.ensure_future(update_inputs(dev, data))
     loop = asyncio.get_event_loop()
     loop.run_forever()
 
 
+def read_controller_socket(conn_type="TCP", frequency=20, port=8080):
+    if conn_type=="UDP":
+        socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    else:
+        socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket.bind(('', port))
+    while True:
+        start = time.time()
+        print("receiving")
+        data_raw,addr = socket.recvfrom(512)
+        print("received")
+        socket_data = json.loads(data_raw)
+        for key, value in socket_data:
+            d[key] = value
+        # ensure data is more that 0.5 seconds old, reset to center
+        if abs(d["timestamp"]-time.time()) > 0.5:
+            d["lx"] = 128
+            d["rx"] = 128
+            # invalid data do not use for training
+            d["timestamp"] = -1
+            print("OLD DATA FROM SOCKET")
+        else:
+            # override the timestamp to current timestamp
+            d["timestamp"] = time.time()
+        while time.time()-start<(1.0/frequency):
+            pass
+
+
 class PS4Interface:
-    def __init__(self):
+    def __init__(self, connection_type="bluetooth"):
         manager = Manager()
         self.data = manager.dict({
             "cross": 0,
@@ -49,7 +76,19 @@ class PS4Interface:
             "timestamp":time.time()
         })
 
-        dev = InputDevice("/dev/input/js0")
+        if connection_type=="bluetooth":
+            dev = InputDevice("/dev/input/js0")
+            controller_process = Process(target=update_inputs, args=(dev, self.data))
 
-        socket_process = Process(target=update_inputs, args=(dev, self.data))
-        socket_process.start()
+        elif connection_type=="websocket_UDP":
+            # SOCK_DGRAM defines a UDP connection
+            socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        
+        elif connection_type=="websocket_TCP":
+            # SOCK_STREAM defines a TCP connection
+            socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            socket.bind('',8080)
+
+
+        
+        controller_process.start()
