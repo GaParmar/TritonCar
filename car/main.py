@@ -38,7 +38,6 @@ if __name__ == "__main__":
 
         status, img = camera.read()
         assert status
-        img = None
 
         curr_data = {
             "throttle" : -1,

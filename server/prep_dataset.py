@@ -41,7 +41,10 @@ for log_file in log_files:
         samples = pickle.load(file1)
         for sample in samples:
             ts = sample["timestamp"]
-            img = Image.fromarray(sample["image"])
+            if sample["image"]:
+                img = Image.fromarray(sample["image"])
+            else:
+                img = Image.fromarray(np.zeros((120,60,3)).astype('uint8'))
             throttle = sample["throttle"]
             steer = sample["steer"]
             img = img.rotate(180)

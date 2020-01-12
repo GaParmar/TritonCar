@@ -18,7 +18,7 @@ function main(){
 
     // range[-1,1] to [0,1] to [0,255]
     data = {
-        "ly"        : parseInt((controller.axes[1]*-0.5 + 0.5)*255),
+        "ly"        : parseInt((controller.axes[1]*0.5 + 0.5)*255),
         "rx"        : parseInt((controller.axes[2]*0.5 + 0.5)*255),
         "square"    : controller.buttons[2].pressed,
         "triangle"  : controller.buttons[3].pressed,
