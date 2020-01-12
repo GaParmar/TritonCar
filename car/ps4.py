@@ -7,6 +7,8 @@ from multiprocessing import Process, Manager
 import socket
 import json
 
+from utils import parse_packet
+
 def update_inputs(dev, data):
     async def update_inputs(dev, data):
         async for event in dev.async_read_loop():
@@ -35,39 +37,42 @@ def update_inputs(dev, data):
 
 def read_controller_socket(conn_type="TCP", frequency=20, port=8080):
     if conn_type=="UDP":
-        socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        socket.bind(('', port))
-    else:
-        socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        socket.bind(('', port))
-        socket.listen()
-        socket,addr = socket.accept()
-        print(socket, addr)
+        raise ValueError("do not use UDP sockets")
+    elif conn_type=="TCP":
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(("192.168.22.207", port))
+        while True:
+            start = time.time()
+            pkt = s.recv(128)
+            print(parse_packet(pkt))
+            while time.time()<(start+1.0/frequency):
+                pass
+
     
-    while True:
-        start = time.time()
-        print("receiving")
-        data_raw,addr = socket.recvfrom(512)
-        print("received")
-        socket_data = json.loads(data_raw)
-        for key, value in socket_data:
-            d[key] = value
-        # ensure data is more that 0.5 seconds old, reset to center
-        if abs(d["timestamp"]-time.time()) > 0.5:
-            d["ly"] = 128
-            d["rx"] = 128
-            # invalid data do not use for training
-            d["timestamp"] = -1
-            print("OLD DATA FROM SOCKET")
-        else:
-            # override the timestamp to current timestamp
-            d["timestamp"] = time.time()
-        while time.time()-start<(1.0/frequency):
-            pass
+    # while True:
+    #     start = time.time()
+    #     print("receiving")
+    #     data_raw,addr = socket.recvfrom(512)
+    #     print("received")
+    #     socket_data = json.loads(data_raw)
+    #     for key, value in socket_data:
+    #         d[key] = value
+    #     # ensure data is more that 0.5 seconds old, reset to center
+    #     if abs(d["timestamp"]-time.time()) > 0.5:
+    #         d["ly"] = 128
+    #         d["rx"] = 128
+    #         # invalid data do not use for training
+    #         d["timestamp"] = -1
+    #         print("OLD DATA FROM SOCKET")
+    #     else:
+    #         # override the timestamp to current timestamp
+    #         d["timestamp"] = time.time()
+    #     while time.time()-start<(1.0/frequency):
+    #         pass
 
 
 class PS4Interface:
-    def __init__(self, connection_type="bluetooth"):
+    def __init__(self, connection_type="websocket_TCP"):
         manager = Manager()
         self.data = manager.dict({
             "cross": 0,
@@ -87,14 +92,8 @@ class PS4Interface:
                     path = device.path
             dev = InputDevice(path)
             controller_process = Process(target=update_inputs, args=(dev, self.data))
-
-        elif connection_type=="websocket_UDP":
-            # SOCK_DGRAM defines a UDP connection
-            socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
         elif connection_type=="websocket_TCP":
-            # SOCK_STREAM defines a TCP connection
-            socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            socket.bind('',8080)
-        
+            controller_process = Process(target=read_controller_socket, args=())
+            
         controller_process.start()
