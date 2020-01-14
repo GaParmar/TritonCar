@@ -7,16 +7,16 @@ import keras
 from dataset import *
 from network import *
 
-dataset_root = "OUTPUT/lab335_0"
-SPLIT_RATIO=0.85
+dataset_root = "OUTPUT/lab335_newmotor"
+num_val = 500
 
 all_file_paths = []
 # get a list of all files in the preprocessed pkl
 for file in os.listdir(dataset_root):
     if ".png" in file:
         all_file_paths.append(os.path.join(dataset_root, file))
-all_file_paths.sort()
-num_train = int(len(all_file_paths)*SPLIT_RATIO)
+random.shuffle(all_file_paths)
+num_train = len(all_file_paths)-num_val
 train_paths = all_file_paths[0:num_train]
 val_paths = all_file_paths[num_train:]
             
@@ -24,7 +24,8 @@ tg = gen(train_paths)
 vg = gen(val_paths)
 model = KerasLinear()
 
-model.train(train_gen=tg, val_gen=vg, saved_model_path="training_models/M2/cp-{epoch:03d}.hdf5")
+model.train(train_gen=tg, val_gen=vg,
+saved_model_path="training_models/335_newmotor/cp-{epoch:03d}.hdf5")
 
 print("\n\neval the model now")
 loss = 0.0

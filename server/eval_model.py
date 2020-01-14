@@ -6,7 +6,7 @@ import keras
 
 from network import KerasLinear
 
-dataset_root = "OUTPUT/lab335_0"
+dataset_root = "OUTPUT/lab335_newmotor"
 
 all_file_paths=[]
 # get a list of all files in the preprocessed pkl
@@ -16,7 +16,7 @@ for file in os.listdir(dataset_root):
 
 model = KerasLinear()
 
-model.model.load_weights("training_models/M2/cp-012.hdf5")
+model.model.load_weights("training_models/335_newmotor/cp-002.hdf5")
 
 # before split - 640x240
 # after split - 320x240
@@ -30,7 +30,7 @@ def norm_split(img):
     return img
 
 loss = 0.0
-for impath in all_file_paths[0:1000]:
+for impath in all_file_paths[:500]:
     img = norm_split(Image.open(impath))
     label_str = os.path.basename(impath).replace(".png","").split("_")
     gt_throttle = np.array(float(label_str[-2]))

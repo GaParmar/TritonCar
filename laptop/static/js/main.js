@@ -32,4 +32,4 @@ function main(){
 setInterval(()=>{
     main()
     // post(data)
-}, 100);
+}, 150);
