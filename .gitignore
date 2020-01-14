@@ -1,2 +1,4 @@
 *.pyc
 server/OUTPUT/
+server/training_models/
+*.DS_Store

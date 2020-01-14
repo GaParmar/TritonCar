@@ -80,6 +80,7 @@ if __name__ == "__main__":
 
         # print(state, logging, curr_data["throttle"], curr_data["steer"])
         # print(state, curr_data)
+        curr_data["timestamp"] = time.time()
         # send control to the motors
         motor.send_data(curr_data)
 

@@ -9,6 +9,11 @@ Open source framework for autonomous RC car
  - **start logging:** triangle
  - **stop logging:** square 
 
+## Training steps
+ - Copy the log pkl files from the RPI to local machine
+ - `cd server && python3 prep_dataset.py --log_dir <path to folder>`
+ - above command will extract images and labels from the pkl files
+
 ## Bluetooth framework
  - uses ds4drv
  - makes joystick device at */dev/input/js0*
@@ -25,7 +30,8 @@ Open source framework for autonomous RC car
  - browse to *http://127.0.0.1:5000/* in google chrome
 
 ## TODO
- - add raspi operating system image upload as dmg
+ - docker image for raspberry pi
+ - docker image for training server - pytorch and keras versions
  - inference mode switching between keras and pytorch
  - added setup steps
 
