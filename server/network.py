@@ -59,7 +59,7 @@ class KerasLinear():
 
 
     def train(self, train_gen, val_gen, 
-              saved_model_path, epochs=100, steps=400, train_split=0.8,
+              saved_model_path, epochs=100, train_steps=1260,
               verbose=1, min_delta=.0005, patience=5, use_early_stop=True):
         
         #checkpoint to save model after each epoch
@@ -83,7 +83,7 @@ class KerasLinear():
             callbacks_list.append(early_stop)
         hist = self.model.fit_generator(
                         train_gen, 
-                        steps_per_epoch=steps, 
+                        steps_per_epoch=train_steps, 
                         epochs=epochs, 
                         verbose=1, 
                         validation_data=val_gen,

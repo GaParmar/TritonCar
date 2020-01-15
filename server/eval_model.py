@@ -5,8 +5,9 @@ from PIL import Image
 import keras
 
 from network import KerasLinear
+from dataset import *
 
-dataset_root = "OUTPUT/lab335_newmotor"
+dataset_root = "OUTPUT/lab335_newmotor_long"
 
 all_file_paths=[]
 # get a list of all files in the preprocessed pkl
@@ -14,23 +15,19 @@ for file in os.listdir(dataset_root):
     if ".png" in file:
         all_file_paths.append(os.path.join(dataset_root, file))
 
+random.seed(101)
+random.shuffle(all_file_paths)
+num_val=500
+num_train = len(all_file_paths)-num_val
+train_paths = all_file_paths[0:num_train]
+val_paths = all_file_paths[num_train:]
+
 model = KerasLinear()
 
-model.model.load_weights("training_models/335_newmotor/cp-002.hdf5")
-
-# before split - 640x240
-# after split - 320x240
-# resize - 160x120
-def norm_split(img):
-    left = np.array(img.crop((0,0,320,240)).resize([160,120]))
-    right = np.array(img.crop((320,0,640,240)).resize([160,120]))
-    img = np.concatenate((left,right), axis=2).astype(np.float32)
-    # normalize to range [0,1] from [0,255]
-    # img /= 255.0
-    return img
+model.model.load_weights("training_models/335_newmotor_long/cp-003.hdf5")
 
 loss = 0.0
-for impath in all_file_paths[:500]:
+for impath in val_paths:
     img = norm_split(Image.open(impath))
     label_str = os.path.basename(impath).replace(".png","").split("_")
     gt_throttle = np.array(float(label_str[-2]))

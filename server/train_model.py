@@ -1,4 +1,4 @@
-import os, sys, time, pdb
+import os, sys, time, pdb, math
 import random
 import numpy as np
 from PIL import Image
@@ -7,7 +7,9 @@ import keras
 from dataset import *
 from network import *
 
-dataset_root = "OUTPUT/lab335_newmotor"
+dataset_root = "OUTPUT/lab335_newmotor_throttle20"
+img_type = "lane_only"
+model_path = "training_models/335_newmotor_throttle20_lane_only/cp-{epoch:03d}.hdf5"
 num_val = 500
 
 all_file_paths = []
@@ -15,17 +17,29 @@ all_file_paths = []
 for file in os.listdir(dataset_root):
     if ".png" in file:
         all_file_paths.append(os.path.join(dataset_root, file))
+
+random.seed(101)
 random.shuffle(all_file_paths)
 num_train = len(all_file_paths)-num_val
 train_paths = all_file_paths[0:num_train]
 val_paths = all_file_paths[num_train:]
-            
-tg = gen(train_paths)
-vg = gen(val_paths)
-model = KerasLinear()
 
-model.train(train_gen=tg, val_gen=vg,
-saved_model_path="training_models/335_newmotor/cp-{epoch:03d}.hdf5")
+train_steps = math.floor(num_train/10.0)
+
+if img_type=="rgb":
+    tg = gen(train_paths, transform=norm_split)
+    vg = gen(val_paths, transform=norm_split)
+    model = KerasLinear(input_shape=(120, 160, 6))
+elif img_type=="lane_only":
+    tg = gen(train_paths, transform=segment_split_norm)
+    vg = gen(val_paths, transform=segment_split_norm)
+    model = KerasLinear(input_shape=(120, 160, 2))
+else:
+    raise ValueError("type not implemented")
+
+model.train(train_gen=tg, val_gen=vg, 
+            train_steps=train_steps,
+            saved_model_path=model_path)
 
 print("\n\neval the model now")
 loss = 0.0
