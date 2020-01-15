@@ -14,7 +14,7 @@ def norm_split(img):
     img /= 255.0
     return img
 
-def segment_img(img, color=(165,125,60), threshold=15, size=(160,120,3)):
+def segment_img(img, color=(165,125,60), threshold=15, size=(120,160,3)):
     np_img = np.array(img)
     rgb_mask = np.ones(size)*color
     threshold_mask = np.ones(size)*threshold
@@ -25,7 +25,7 @@ def segment_img(img, color=(165,125,60), threshold=15, size=(160,120,3)):
 def segment_split_norm(img):
     pil_left = segment_img(img.crop((0,0,320,240)).resize([160,120]))
     pil_right = segment_img(img.crop((320,0,640,240)).resize([160,120]))
-    img = np.concatenate((np.array(pil_left),np.array(pil_right)), axis=2).astype(np.float32)
+    img = np.concatenate((np.array(pil_left).reshape(120,160,1),np.array(pil_right).reshape(120,160,1)), axis=2).astype(np.float32)
     # normalize to range [0,1] from [0,255]
     img /= 255.0
     return img
