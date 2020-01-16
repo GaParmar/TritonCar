@@ -29,7 +29,7 @@ if __name__ == "__main__":
     model_path = config["trained_model_path"]
     auto_model = None
     if model_path is not None:
-        auto_model = KerasLinear()
+        auto_model = KerasLinearPolicy()
         auto_model.model.load_weights(model_path)
 
     ps4 = PS4Interface(connection_type=config["controller_type"])
@@ -66,6 +66,7 @@ if __name__ == "__main__":
             "image"    : img
         }
         logging = False if ps4.data["square"] else logging
+        oldstate = state
         state = "manual" if ps4.data["cross"] else state
         state = "autonomous" if ps4.data["circle"] else state
         logging = True if ps4.data["triangle"] else logging
@@ -74,7 +75,14 @@ if __name__ == "__main__":
         if state == "manual":
             # parse the ps4 data
             # ensure that data is not very stale
-            if ps4.data["timestamp"]-time.time() > config["tolerance_time"]:
+            if(oldstate == "autonomous"):
+                print("learning")
+                curr_data["throttle"] = 90
+                curr_data["steer"] = 90
+                auto_model.train(saved_model_path="current_rl_model")
+                auto_model.clear_buffers()
+
+            elif ps4.data["timestamp"]-time.time() > config["tolerance_time"]:
                 print("exceeded tolerance")
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
