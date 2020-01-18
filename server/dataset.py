@@ -30,7 +30,7 @@ def segment_split_norm(img):
     img /= 255.0
     return img
 
-def gen(path_list, batch_size=10, transform=norm_split):
+def gen(path_list, batch_size=10, transform=norm_split, num_ch=2):
     while True:
         # shuffle
         random.shuffle(path_list)
@@ -38,7 +38,7 @@ def gen(path_list, batch_size=10, transform=norm_split):
         num_batches = math.floor(len(path_list)/batch_size)
         print(f"number of batches in the generator = {num_batches}")
         for i in range(num_batches):
-            X = np.zeros((batch_size, 120, 160, 6))
+            X = np.zeros((batch_size, 120, 160, num_ch))
             y = [np.zeros((batch_size, 1)), np.zeros((batch_size, 1))]
             batch_paths = path_list[i:i+batch_size]
             for j in range(batch_size):
