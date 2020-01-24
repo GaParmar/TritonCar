@@ -1,8 +1,38 @@
 function post(data){
-    var xhr = new XMLHttpRequest();
+    let xhr = new XMLHttpRequest();
     xhr.open("POST", "/data", true);
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.onreadystatechange = function(){
+        if (xhr.readyState == XMLHttpRequest.DONE && xhr.response=="failure"){
+            document.getElementById("p_status").innerHTML = "disconnected"
+            document.getElementById("p_status").style.color = "red"
+        } 
+    }
     xhr.send(JSON.stringify(data));
+}
+
+function update_ui(data){
+    document.getElementById("p_throttle").innerHTML = data["ly"]
+    document.getElementById("p_steer").innerHTML = data["rx"]
+
+}
+
+function socket_connect(){
+    let port = document.getElementById("inp_port").value
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/init_connection", true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            let res = JSON.parse(xhr.response);
+            // update the ui with the response
+            if (res.status == "success"){
+                document.getElementById("p_status").innerHTML = "connected"
+                document.getElementById("p_status").style.color = "green"
+            }
+        }
+    }
+    xhr.send(JSON.stringify({"port":port}));
 }
 
 function main(){
@@ -25,11 +55,30 @@ function main(){
         "circle"    : controller.buttons[1].pressed,
         "cross"     : controller.buttons[0].pressed
     }
-    post(data)
+
+    if (document.getElementById("p_status").innerHTML == "connected"){
+        // send data to the flask server
+        post(data)
+    }
+    // update the ui
+    update_ui(data)
 }
 
 
 setInterval(()=>{
     main()
     // post(data)
-}, 100);
+}, 150);
+
+window.onload = function(e){ 
+    // get local host ip address on page load
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "/get_host_ip", true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            document.getElementById("p_ip").innerHTML = xhr.response
+        }
+    }
+    xhr.send(JSON.stringify({}));
+}

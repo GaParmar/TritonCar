@@ -6,20 +6,32 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
         <script src="js/api_methods.js"></script>
-            
+        <script src="js/main.js"></script>
         <title>CAR DASHBOARD</title>
     </head>
     <body>
-        <div>
-            <p>log dir:</p>
-            <input id="log_dir_content" value="~/LOG/default"/>
-            <button id="send">send</button>
-            <button id="refresh">refresh</button>
+        
+        <div style="margin: 20px;">
+            <p style="margin:0;display:inline">destination address:</p>
+            <p style="margin:0;display:inline" id="p_ip">TBD</p>
+            <input style="margin:0;display:inline" id="inp_port" value="8080"/>
+
         </div>
-        <div>
-            <p>rpi url:</p>
-            <input id="rpi_url" value="http://127.0.0.1:8000"/>
+        <div style="margin: 20px;">
+            <p style="margin:0;display:inline">THROTTLE: </p>
+            <p style="margin:0;display:inline" id="p_throttle">128</p>
         </div>
-        <script src="js/main.js"></script>
+        <div style="margin: 20px;">
+            <p style="margin:0;display:inline">STEER: </p>
+            <p style="margin:0;display:inline" id="p_steer">128</p>
+        </div>
+        <div style="margin: 20px;">
+            <p style="margin:0;display:inline">STATUS: </p>
+            <p style="margin:0;display:inline;color:red;" id="p_status">Not Connected</p>
+        </div>
+        <div style="margin: 20px;">
+            <button style="margin:0;display:inline;" onclick="socket_connect()">Connect</button>
+        </div>
+        
     </body>
 </html>
