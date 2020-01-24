@@ -7,9 +7,9 @@ import keras
 from dataset import *
 from network import *
 
-dataset_root = "OUTPUT/lab335_newmotor_throttle20"
-img_type = "lane_only"
-model_path = "training_models/335_newmotor_throttle20_lane_only/cp-{epoch:03d}.hdf5"
+dataset_root = "OUTPUT/lab335_T10"
+img_type = "rgb"
+model_path = "training_models/335_T10_RGB/cp_{epoch:03d}_{val_loss:.2f}.hdf5"
 num_val = 500
 
 all_file_paths = []
@@ -27,12 +27,12 @@ val_paths = all_file_paths[num_train:]
 train_steps = math.floor(num_train/10.0)
 
 if img_type=="rgb":
-    tg = gen(train_paths, transform=norm_split)
-    vg = gen(val_paths, transform=norm_split)
+    tg = gen(train_paths, transform=norm_split, num_ch=6)
+    vg = gen(val_paths, transform=norm_split, num_ch=6)
     model = KerasLinear(input_shape=(120, 160, 6))
 elif img_type=="lane_only":
-    tg = gen(train_paths, transform=segment_split_norm)
-    vg = gen(val_paths, transform=segment_split_norm)
+    tg = gen(train_paths, transform=segment_split_norm, num_ch=2)
+    vg = gen(val_paths, transform=segment_split_norm, num_ch=2)
     model = KerasLinear(input_shape=(120, 160, 2))
 else:
     raise ValueError("type not implemented")
