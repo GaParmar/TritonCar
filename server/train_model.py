@@ -6,10 +6,11 @@ import keras
 
 from dataset import *
 from network import *
+from config import *
 
-dataset_root = "OUTPUT/lab335_T10"
+dataset_root = "OUTPUT/lab335"
 img_type = "rgb"
-model_path = "training_models/335_T10_RGB/cp_{epoch:03d}_{val_loss:.2f}.hdf5"
+model_path = "training_models/lab335/cp_{epoch:03d}_{val_loss:.2f}.hdf5"
 num_val = 500
 
 all_file_paths = []
@@ -27,10 +28,11 @@ val_paths = all_file_paths[num_train:]
 train_steps = math.floor(num_train/10.0)
 
 if img_type=="rgb":
-    tg = gen(train_paths, transform=norm_split, num_ch=6)
-    vg = gen(val_paths, transform=norm_split, num_ch=6)
-    model = KerasLinear(input_shape=(120, 160, 6))
+    tg = gen(train_paths, transform=norm_split)
+    vg = gen(val_paths, transform=norm_split)
+    model = KerasLinear(input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
 elif img_type=="lane_only":
+    raise ValueError("do not use this")
     tg = gen(train_paths, transform=segment_split_norm, num_ch=2)
     vg = gen(val_paths, transform=segment_split_norm, num_ch=2)
     model = KerasLinear(input_shape=(120, 160, 2))

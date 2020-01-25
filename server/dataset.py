@@ -3,19 +3,26 @@ import random
 import numpy as np
 from PIL import Image
 
+from config import *
+
 # before split - 640x240
 # after split - 320x240
 # resize - 160x120
+# crop the top height (remove top 40 pixels)
+# final - 160x80
 def norm_split(img):
     left = np.array(img.crop((0,0,320,240)).resize([160,120]))
     right = np.array(img.crop((320,0,640,240)).resize([160,120]))
     img = np.concatenate((left,right), axis=2).astype(np.float32)
     # normalize to range [0,1] from [0,255]
     img /= 255.0
+    # crop off the top third
+    img = img[40:,:,:] #HWC
     return img
 
-def segment_img(img, color=(165,125,60), threshold=15, size=(120,160,3)):
+def segment_img(img, color=(165,125,60), threshold=15):
     np_img = np.array(img)
+    size = np_img.shape
     rgb_mask = np.ones(size)*color
     threshold_mask = np.ones(size)*threshold
     f_img = np.abs(np_img-rgb_mask)<=threshold_mask
@@ -23,6 +30,7 @@ def segment_img(img, color=(165,125,60), threshold=15, size=(120,160,3)):
     return Image.fromarray(f_img.astype('uint8'))
 
 def segment_split_norm(img):
+    raise ValueError("do not use this mode right now")
     pil_left = segment_img(img.crop((0,0,320,240)).resize([160,120]))
     pil_right = segment_img(img.crop((320,0,640,240)).resize([160,120]))
     img = np.concatenate((np.array(pil_left).reshape(120,160,1),np.array(pil_right).reshape(120,160,1)), axis=2).astype(np.float32)
@@ -30,7 +38,7 @@ def segment_split_norm(img):
     img /= 255.0
     return img
 
-def gen(path_list, batch_size=10, transform=norm_split, num_ch=2):
+def gen(path_list, batch_size=10, transform=norm_split):
     while True:
         # shuffle
         random.shuffle(path_list)
@@ -38,7 +46,7 @@ def gen(path_list, batch_size=10, transform=norm_split, num_ch=2):
         num_batches = math.floor(len(path_list)/batch_size)
         print(f"number of batches in the generator = {num_batches}")
         for i in range(num_batches):
-            X = np.zeros((batch_size, 120, 160, num_ch))
+            X = np.zeros((batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
             y = [np.zeros((batch_size, 1)), np.zeros((batch_size, 1))]
             batch_paths = path_list[i:i+batch_size]
             for j in range(batch_size):

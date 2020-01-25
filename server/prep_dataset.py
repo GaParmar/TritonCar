@@ -4,7 +4,7 @@ import numpy as np
 import pickle 
 import argparse
 import pdb
-
+import cv2
 from PIL import Image
 
 parser = argparse.ArgumentParser(description="unpack log pickle files")
@@ -42,7 +42,7 @@ for log_file in log_files:
         for sample in samples:
             ts = sample["timestamp"]
             if sample["image"] is not None:
-                img = Image.fromarray(sample["image"])
+                img = Image.fromarray(sample["image"][:,:,::-1])
             else:
                 img = Image.fromarray(np.zeros((120,60,3)).astype('uint8'))
             throttle = sample["throttle"]
