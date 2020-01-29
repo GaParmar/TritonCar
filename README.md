@@ -35,7 +35,7 @@ Open source framework for autonomous RC car
 
 
 ## TODO
- - docker image for raspberry pi
+ - add root to pythonpath
  - docker image for training server - pytorch and keras versions
  - inference mode switching between keras and pytorch
  - added setup steps

@@ -10,7 +10,14 @@ from motor import *
 from ps4 import *
 from utils import *
 
+## add root to the path
+root_path =  os.path.abspath('..')
+if root_path not in sys.path:
+    sys.path.append(root_path)
+
 from server.network import *
+from config import *
+
 
 def norm_split(img):
     left = np.array(img.crop((0,0,320,240)).resize([160,120]))
@@ -21,30 +28,27 @@ def norm_split(img):
     return img
 
 if __name__ == "__main__":
-    # load parameters from config.json file
-    with open('car/config.json') as json_file:
-        config = json.load(json_file)
     
     # load trained model weights
-    model_path = config["trained_model_path"]
-    auto_model = None
-    if model_path is not None:
+    if CAR_MODEL_PATH is not None:
         auto_model = KerasLinear()
         auto_model.model.load_weights(model_path)
+    else:
+        auto_model = None
 
-    ps4 = PS4Interface(connection_type=config["controller_type"])
-    camera = cv2.VideoCapture(config["camera_id"])
+    ps4 = PS4Interface(connection_type=COMM_CONTROLLER_TYPE)
+    camera = cv2.VideoCapture(CAR_CAMERA_ID)
     motor = ArduinoMotor()
     log_buffer = []
     log_counter=0
 
     # ensure that log dir does not exist
-    if not os.path.exists(config["log_path"]):
-        os.makedirs(config["log_path"])
+    if not os.path.exists(CAR_LOG_PATH):
+        os.makedirs(CAR_LOG_PATH)
         log_counter = 0
     else:
         # find the file index to continue from
-        for f in os.listdir(config["log_path"]):
+        for f in os.listdir(CAR_LOG_PATH):
             val = int(f.split("_")[1].split(".")[0])
             log_counter = max(val+1, log_counter)
 
@@ -74,18 +78,18 @@ if __name__ == "__main__":
         if state == "manual":
             # parse the ps4 data
             # ensure that data is not very stale
-            if ps4.data["timestamp"]-time.time() > config["tolerance_time"]:
+            if ps4.data["timestamp"]-time.time() > CAR_TIMEOUT_TOLERANCE:
                 print("exceeded tolerance")
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
             else:
-                curr_data["throttle"] = ((int(ps4.data["ly"])-128)/128)*-config["throttle_allowance"] + 90
-                curr_data["steer"] = ((int(ps4.data["rx"])-128)/128)*config["steer_allowance"] + 90
+                curr_data["throttle"] = ((int(ps4.data["ly"])-128)/128)*-CAR_THROTTLE_ALLOWANCE + 90
+                curr_data["steer"] = ((int(ps4.data["rx"])-128)/128)*CAR_STEER_ALLOWANCE + 90
             
                 if logging:
                     log_buffer.append(curr_data)
-                    if len(log_buffer)==config["samples_per_file"]:
-                        p = Process(target=save_to_file, args=(config["log_path"], log_counter, deepcopy(log_buffer)))
+                    if len(log_buffer)==CAR_SAMPLES_PER_FILE:
+                        p = Process(target=save_to_file, args=(CAR_LOG_PATH, log_counter, deepcopy(log_buffer)))
                         p.start()
                         log_buffer = []
                         log_counter += 1
@@ -111,9 +115,9 @@ if __name__ == "__main__":
         # send control to the motors
         motor.send_data(curr_data)
 
-        if time.time() > (ts_start+config["refresh_time"]):
+        if time.time() > (ts_start+CAR_REFRESH_RATE):
             print(f"main loop takes {time.time()-ts_start}")
         else:
             # busy wait while time requirement is met
-            while time.time() < (ts_start+config["refresh_time"]):
+            while time.time() < (ts_start+CAR_REFRESH_RATE):
                 pass

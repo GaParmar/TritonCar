@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 # output dir
 args.output_dir = os.path.join(args.output_dir,
-                    os.path.basename(os.path.abspath(args.log_dir)))
+                    os.path.basename(os.path.abspath(args.log_dir)) + "_reduced")
 
 log_files = []
 # get all pickle files
@@ -47,6 +47,9 @@ for log_file in log_files:
                 img = Image.fromarray(np.zeros((120,60,3)).astype('uint8'))
             throttle = sample["throttle"]
             steer = sample["steer"]
+            if abs(steer-90) < 10:
+                continue
+            
             img = img.rotate(180)
             if(throttle != 90 or steer != 90):
                 impath = os.path.join(args.output_dir,

@@ -8,9 +8,10 @@ from dataset import *
 from network import *
 from config import *
 
-dataset_root = "OUTPUT/lab335"
+dataset_root = "OUTPUT/lab335_reduced"
 img_type = "rgb"
-model_path = "training_models/lab335/cp_{epoch:03d}_{val_loss:.2f}.hdf5"
+load_init_model = "training_models/lab335/cp_005_105.28.hdf5"
+model_path = "training_models/lab335_finetune/cp_{epoch:03d}_{val_loss:.2f}.hdf5"
 num_val = 500
 
 all_file_paths = []
@@ -38,6 +39,9 @@ elif img_type=="lane_only":
     model = KerasLinear(input_shape=(120, 160, 2))
 else:
     raise ValueError("type not implemented")
+
+if load_init_model != "":
+    model.model.load_weights(load_init_model)
 
 model.train(train_gen=tg, val_gen=vg, 
             train_steps=train_steps,
