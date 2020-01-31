@@ -1,4 +1,4 @@
-import os, sys, time, math
+import os, sys, time, math, pdb
 import random
 import numpy as np
 from PIL import Image
@@ -38,6 +38,12 @@ def segment_split_norm(img):
     img /= 255.0
     return img
 
+def make_label(path):
+    label_str = os.path.basename(path).replace(".png","").split("_")
+    throttle = float(label_str[-2])
+    steer = float(label_str[-1])
+    return throttle, steer
+
 def gen(path_list, batch_size=10, transform=norm_split):
     while True:
         # shuffle
@@ -59,3 +65,37 @@ def gen(path_list, batch_size=10, transform=norm_split):
                 y[0][j] = throttle
                 y[1][j] = steer
             yield X,y
+
+### PYTORCH VERSION
+import torch
+from torch.utils.data import Dataset
+from torchvision import transforms, utils
+
+class CarDataset(Dataset):
+    def __init__(self, root, split="train"):
+        super(CarDataset, self).__init__()
+        self.all_files = []
+        # make a list of all file
+        for f in os.listdir(os.path.join(self.root)):
+            if ".png" in f:
+                self.all_files.append(os.path.join(self.root, f))
+        self.all_files.sort()
+        # if it is train set use the first 90% of the dataset
+        if split == "train":
+            self.all_files = self.all_files[0:int(len(self.all_files)*0.9)]
+        elif split == "test":
+            self.all_files = self.all_files[int(len(all_files)*0.9):]
+        
+        self.transform_image = norm_split
+    
+    def __len__(self):
+        return len(self.all_files)
+    
+    def __getitem__(self, idx):
+        sample = {  "image"   : Image.open(self.all_files[idx]),
+                    "label"   : make_label(self.all_files[idx]),
+                    "path"    : self.image_paths[idx]}
+    
+        sample["image"] = torch.tensor(self.transform_image(sample["image"]))
+        return sample
+

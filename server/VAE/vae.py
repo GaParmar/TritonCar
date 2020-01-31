@@ -39,6 +39,12 @@ class VAE(nn.Module):
             nn.Sigmoid()
         )
 
+    def only_encode(self, x):
+        encoded = self.encoder(x)
+        mean, logvar = self.q(encoded)
+        return mean
+
+
     def forward(self, x):
         # pdb.set_trace()
         # encode x

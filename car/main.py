@@ -23,8 +23,9 @@ if __name__ == "__main__":
     
     # load trained model weights
     if CAR_MODEL_PATH is not None:
-        auto_model = KerasLinear(input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
-        auto_model.model.load_weights(CAR_MODEL_PATH)
+        state_vae = VAE()
+        # auto_model = KerasLinear(input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
+        # auto_model.model.load_weights(CAR_MODEL_PATH)
     else:
         auto_model = None
 
@@ -66,6 +67,8 @@ if __name__ == "__main__":
         state = "autonomous" if ps4.data["circle"] else state
         logging = True if ps4.data["triangle"] else logging
 
+        rewards = []
+
         # print(ps4.data)
         if state == "manual":
             # parse the ps4 data
@@ -87,9 +90,14 @@ if __name__ == "__main__":
                         log_counter += 1
 
         elif state == "autonomous":
+            
             if auto_model is not None:
                 t_img = norm_split(Image.fromarray(img[:,:,::-1]))
-                throttle, steer = auto_model.run(t_img)
+                # throttle, steer = auto_model.run(t_img)
+                ## VAE FORW PASS
+                state = state_vae.only_encode(t_img)
+                
+
                 curr_data["throttle"] = throttle
                 curr_data["steer"] = steer
             else:

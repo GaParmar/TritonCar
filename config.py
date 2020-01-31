@@ -21,4 +21,4 @@ IMAGE_HEIGHT = 80
 IMAGE_CH = 6
 
 # TRAINING
-TRAIN_DS_ROOT = ""
+TRAIN_DS_ROOT = "~/Desktop/github_gaparmar/TritonCar/server/OUTPUT"
