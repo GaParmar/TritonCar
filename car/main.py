@@ -16,23 +16,15 @@ if root_path not in sys.path:
     sys.path.append(root_path)
 
 from server.network import *
+from server.dataset import *
 from config import *
-
-
-def norm_split(img):
-    left = np.array(img.crop((0,0,320,240)).resize([160,120]))
-    right = np.array(img.crop((320,0,640,240)).resize([160,120]))
-    img = np.concatenate((left,right), axis=2).astype(np.float32)
-    # normalize to range [0,1] from [0,255]
-    # img /= 255.0
-    return img
 
 if __name__ == "__main__":
     
     # load trained model weights
     if CAR_MODEL_PATH is not None:
-        auto_model = KerasLinear()
-        auto_model.model.load_weights(model_path)
+        auto_model = KerasLinear(input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
+        auto_model.model.load_weights(CAR_MODEL_PATH)
     else:
         auto_model = None
 
@@ -96,15 +88,13 @@ if __name__ == "__main__":
 
         elif state == "autonomous":
             if auto_model is not None:
-                t_img = norm_split(Image.fromarray(img))
+                t_img = norm_split(Image.fromarray(img[:,:,::-1]))
                 throttle, steer = auto_model.run(t_img)
                 curr_data["throttle"] = throttle
                 curr_data["steer"] = steer
             else:
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
-            # curr_data["throttle"] = 90
-            # curr_data["steer"] = 90
 
         else:
             raise ValueError(f"state {state} not implemented yet")
