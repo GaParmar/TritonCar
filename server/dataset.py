@@ -76,15 +76,15 @@ class CarDataset(Dataset):
         super(CarDataset, self).__init__()
         self.all_files = []
         # make a list of all file
-        for f in os.listdir(os.path.join(self.root)):
+        for f in os.listdir(os.path.join(root)):
             if ".png" in f:
-                self.all_files.append(os.path.join(self.root, f))
+                self.all_files.append(os.path.join(root, f))
         self.all_files.sort()
         # if it is train set use the first 90% of the dataset
         if split == "train":
             self.all_files = self.all_files[0:int(len(self.all_files)*0.9)]
         elif split == "test":
-            self.all_files = self.all_files[int(len(all_files)*0.9):]
+            self.all_files = self.all_files[int(len(self.all_files)*0.9):]
         
         self.transform_image = norm_split
     
@@ -92,10 +92,12 @@ class CarDataset(Dataset):
         return len(self.all_files)
     
     def __getitem__(self, idx):
-        sample = {  "image"   : Image.open(self.all_files[idx]),
-                    "label"   : make_label(self.all_files[idx]),
-                    "path"    : self.image_paths[idx]}
+        throttle, steer = make_label(self.all_files[idx])
+        sample = {  "image"      : Image.open(self.all_files[idx]),
+                    "throttle"   : torch.tensor(throttle).float(),
+                    "steer"      : torch.tensor(steer).float(),
+                    "path"       : self.all_files[idx]}
     
-        sample["image"] = torch.tensor(self.transform_image(sample["image"]))
+        sample["image"] = torch.tensor(self.transform_image(sample["image"])).transpose(0, 2)
         return sample
 
