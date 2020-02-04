@@ -2,6 +2,9 @@ import os, sys, time, math, pdb
 import random
 import numpy as np
 from PIL import Image
+import torch
+from torch.utils.data import Dataset
+from torchvision import transforms, utils
 
 from config import *
 
@@ -11,14 +14,18 @@ from config import *
 # crop the top height (remove top 40 pixels)
 # final - 160x80
 def norm_split(img):
-    left = np.array(img.crop((0,0,320,240)).resize([160,120]))
-    right = np.array(img.crop((320,0,640,240)).resize([160,120]))
-    img = np.concatenate((left,right), axis=2).astype(np.float32)
-    # normalize to range [0,1] from [0,255]
-    img /= 255.0
-    # crop off the top third
-    img = img[40:,:,:] #HWC
-    return img
+    pdb.set_trace()
+    # crop off the top 1/4 (60 pixels) of the image
+    img = img.crop((0,0,640,60))
+    h,w = img.size
+    left_pil = img.crop((0,0,int(w/2),h)).resize([160,80])
+    right_pil = img.crop((int(w/2),0,w,h)).resize([160,80])
+    left_t = transforms.ToTensor()(left_pil)
+    right_t = transforms.ToTensor()(right_pil)
+    left_norm = left_t/255.0
+    right_norm = right_t/255.0
+    cmb = torch.cat((left_norm, right_norm), dim=0)
+    return cmb
 
 def segment_img(img, color=(165,125,60), threshold=15):
     np_img = np.array(img)
@@ -29,47 +36,19 @@ def segment_img(img, color=(165,125,60), threshold=15):
     f_img = np.logical_and(f_img[:,:,0], f_img[:,:,1], f_img[:,:,2])*255
     return Image.fromarray(f_img.astype('uint8'))
 
-def segment_split_norm(img):
-    raise ValueError("do not use this mode right now")
-    pil_left = segment_img(img.crop((0,0,320,240)).resize([160,120]))
-    pil_right = segment_img(img.crop((320,0,640,240)).resize([160,120]))
-    img = np.concatenate((np.array(pil_left).reshape(120,160,1),np.array(pil_right).reshape(120,160,1)), axis=2).astype(np.float32)
-    # normalize to range [0,1] from [0,255]
-    img /= 255.0
-    return img
-
 def make_label(path):
     label_str = os.path.basename(path).replace(".png","").split("_")
     throttle = float(label_str[-2])
     steer = float(label_str[-1])
     return throttle, steer
 
-def gen(path_list, batch_size=10, transform=norm_split):
-    while True:
-        # shuffle
-        random.shuffle(path_list)
-        i = 0
-        num_batches = math.floor(len(path_list)/batch_size)
-        print(f"number of batches in the generator = {num_batches}")
-        for i in range(num_batches):
-            X = np.zeros((batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
-            y = [np.zeros((batch_size, 1)), np.zeros((batch_size, 1))]
-            batch_paths = path_list[i:i+batch_size]
-            for j in range(batch_size):
-                impath = batch_paths[j]
-                img = transform(Image.open(impath))
-                label_str = os.path.basename(impath).replace(".png","").split("_")
-                throttle = np.array(int(float(label_str[-2])))
-                steer = np.array(int(float(label_str[-1])))
-                X[j] = img
-                y[0][j] = throttle
-                y[1][j] = steer
-            yield X,y
 
-### PYTORCH VERSION
-import torch
-from torch.utils.data import Dataset
-from torchvision import transforms, utils
+def convert_label(val, bins):
+    diff = torch.abs(torch.tensor(bins)-torch.ones(val))
+    # convert to a probability distribution
+    diff_prob = torch.softmax(1.0/diff, 0)
+    return diff_prob
+
 
 class CarDataset(Dataset):
     def __init__(self, root, split="train"):
@@ -99,5 +78,32 @@ class CarDataset(Dataset):
                     "path"       : self.all_files[idx]}
     
         sample["image"] = torch.tensor(self.transform_image(sample["image"])).transpose(0, 2)
+        sample["throttle"] 
         return sample
 
+
+"""
+LEGACY CODE
+
+def gen(path_list, batch_size=10, transform=norm_split):
+    while True:
+        # shuffle
+        random.shuffle(path_list)
+        i = 0
+        num_batches = math.floor(len(path_list)/batch_size)
+        print(f"number of batches in the generator = {num_batches}")
+        for i in range(num_batches):
+            X = np.zeros((batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
+            y = [np.zeros((batch_size, 1)), np.zeros((batch_size, 1))]
+            batch_paths = path_list[i:i+batch_size]
+            for j in range(batch_size):
+                impath = batch_paths[j]
+                img = transform(Image.open(impath))
+                label_str = os.path.basename(impath).replace(".png","").split("_")
+                throttle = np.array(int(float(label_str[-2])))
+                steer = np.array(int(float(label_str[-1])))
+                X[j] = img
+                y[0][j] = throttle
+                y[1][j] = steer
+            yield X,y
+"""

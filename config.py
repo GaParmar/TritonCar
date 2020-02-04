@@ -36,3 +36,9 @@ PILOT_STEER_BINS = [ 90, # stay in the middle (90+0)
                     int(90-(CAR_STEER_ALLOWANCE*0.50)), int(90+(CAR_STEER_ALLOWANCE*0.50)),
                     int(90-(CAR_STEER_ALLOWANCE*0.75)), int(90+(CAR_STEER_ALLOWANCE*0.75)),
                     int(90-(CAR_STEER_ALLOWANCE*1.00)), int(90+(CAR_STEER_ALLOWANCE*1.00))]
+
+PILOT_THROTTLE_BINS = [ 90, # stay in the middle (90+0)
+                    int(90-(CAR_THROTTLE_ALLOWANCE*0.25)), int(90+(CAR_THROTTLE_ALLOWANCE*0.25)),
+                    int(90-(CAR_THROTTLE_ALLOWANCE*0.50)), int(90+(CAR_THROTTLE_ALLOWANCE*0.50)),
+                    int(90-(CAR_THROTTLE_ALLOWANCE*0.75)), int(90+(CAR_THROTTLE_ALLOWANCE*0.75)),
+                    int(90-(CAR_THROTTLE_ALLOWANCE*1.00)), int(90+(CAR_THROTTLE_ALLOWANCE*1.00))]
