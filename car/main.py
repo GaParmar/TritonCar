@@ -23,7 +23,8 @@ if __name__ == "__main__":
     
     # load trained model weights
     if CAR_MODEL_PATH is not None:
-        state_vae = VAE()
+        pass
+        # state_vae = VAE()
         # auto_model = KerasLinear(input_shape=(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CH))
         # auto_model.model.load_weights(CAR_MODEL_PATH)
     else:
@@ -69,7 +70,6 @@ if __name__ == "__main__":
 
         rewards = []
 
-        # print(ps4.data)
         if state == "manual":
             # parse the ps4 data
             # ensure that data is not very stale
@@ -82,6 +82,9 @@ if __name__ == "__main__":
                 curr_data["steer"] = ((int(ps4.data["rx"])-128)/128)*CAR_STEER_ALLOWANCE + 90
             
                 if logging:
+                    # if in logging mode and flag set, set throttle to constant value
+                    if CAR_FIX_THROTTLE != -1:
+                        curr_data["throttle"] = 90 - CAR_FIX_THROTTLE 
                     log_buffer.append(curr_data)
                     if len(log_buffer)==CAR_SAMPLES_PER_FILE:
                         p = Process(target=save_to_file, args=(CAR_LOG_PATH, log_counter, deepcopy(log_buffer)))

@@ -9,6 +9,7 @@ CAR_TIMEOUT_TOLERANCE = 0.1 # in seconds
 CAR_THROTTLE_ALLOWANCE = 25
 CAR_STEER_ALLOWANCE = 35
 CAR_SAMPLES_PER_FILE = 100 # num of samples for each log file
+CAR_FIX_THROTTLE = 10 # -1 for disabling this
 
 
 # COMMUNICATION
@@ -21,7 +22,10 @@ IMAGE_HEIGHT = 80
 IMAGE_CH = 6
 
 # TRAINING
-TRAIN_DS_ROOT = "OUTPUT/lab335/lab335"
+TRAIN_DS_ROOT = "../OUTPUT/lab335/lab335"
 TRAIN_EPOCHS = 100
 TRAIN_BATCH_SIZE = 32
 TRAIN_LR = 4e-5
+
+TRAIN_SU_outpath = f"output_models/"
+TRAIN_SU_EXP_NAME = "exp0"

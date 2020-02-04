@@ -2,8 +2,9 @@ import torch
 from torch import nn
 
 class LinearPilot(nn.Module):
-    def __init__(self):
+    def __init__(self, output_ch=2):
         super().__init__()
+        self.output_ch = output_ch
         self.bn = nn.BatchNorm2d(6)
         self.conv2d_1 = nn.Sequential(
                             nn.Conv2d(6, 24,kernel_size=5, stride=2, padding=0,),
@@ -40,9 +41,11 @@ class LinearPilot(nn.Module):
             nn.ReLU(),
             nn.Dropout(p=0.1)
         ) 
-
-        self.fc_throttle = nn.Linear(50, 1)
-        self.fc_steer = nn.Linear(50,1)
+        if self.output_ch == 2:
+            self.fc_throttle = nn.Linear(50, 1)
+            self.fc_steer = nn.Linear(50,1)
+        elif self.output_ch == 1:
+            self.fc_steer = nn.Linear(50,1)
     
     
 
@@ -57,6 +60,10 @@ class LinearPilot(nn.Module):
         x = x.view(batch, -1)
         x = self.fc1(x)
         x = self.fc2(x)
-        throttle = self.fc_throttle(x).view(-1)
-        steer = self.fc_steer(x).view(-1)
-        return throttle, steer
+        if self.output_ch == 2:
+            throttle = self.fc_throttle(x).view(-1)
+            steer = self.fc_steer(x).view(-1)
+            return throttle, steer
+        elif self.output_ch == 1:
+            steer = self.fc_steer(x).view(-1)
+            return steer
