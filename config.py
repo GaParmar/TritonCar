@@ -9,7 +9,7 @@ CAR_TIMEOUT_TOLERANCE = 0.1 # in seconds
 CAR_THROTTLE_ALLOWANCE = 25
 CAR_STEER_ALLOWANCE = 35
 CAR_SAMPLES_PER_FILE = 100 # num of samples for each log file
-CAR_FIX_THROTTLE = 10 # -1 for disabling this
+CAR_FIX_THROTTLE = 3 # -1 for disabling this
 
 
 # COMMUNICATION
