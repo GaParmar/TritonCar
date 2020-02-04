@@ -6,3 +6,7 @@ car/__pycache__/utils.cpython-37.pyc
 server/OUTPUT/
 server/training_models/
 *.DS_Store
+
+server/VAE/samples/
+server/VAE/recons/
+server/VAE/vae_images/
