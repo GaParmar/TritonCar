@@ -35,6 +35,7 @@ Open source framework for autonomous RC car
 
 
 ## TODO
+ - fix random seed while training
  - add root to pythonpath
  - docker image for training server - pytorch and keras versions
  - inference mode switching between keras and pytorch

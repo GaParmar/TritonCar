@@ -11,27 +11,38 @@ import torchvision
 
 from vae import VAE
 
-batch_size=32
-num_epochs=50
-z_size=64
-lr=1e-3
+## add root to the path
+root_path =  os.path.abspath('../..')
+if root_path not in sys.path:
+    sys.path.append(root_path)
+
+from config import *
+from server.dataset import CarDataset
 
 vae = VAE(
-    label="lab335_32x16",
-    image_W=32,
-    image_H=16,
+    label=VAE_LABEL,
+    image_W=VAE_WIDTH,
+    image_H=VAE_HEIGHT,
     channel_num=3,
     kernel_num=128,
-    z_size=z_size,
+    z_size=VAE_ZDIM,
 )
 vae.train()
-optimizer = torch.optim.Adam(vae.parameters(), lr=lr,
+optimizer = torch.optim.Adam(vae.parameters(), lr=VAE_LR,
                     weight_decay=1e-5)
+
 # pdb.set_trace()
 # make the dataset
-dset = torchvision.datasets.ImageFolder(root="vae_images",
-        transform=torchvision.transforms.ToTensor())
-loader = DataLoader(dset, batch_size=batch_size, shuffle=True)
+ds_train = CarDataset(root=TRAIN_DS_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="train", stochastic=False)
+# ds_train = torchvision.datasets.ImageFolder(root="../OUTPUT",
+#         transform=torchvision.transforms.Compose([
+#                 torchvision.transforms.Resize((VAE_HEIGHT, VAE_WIDTH*2)),
+#                 torchvision.transforms.ToTensor()
+#             ]))
+ds_test = CarDataset(root=TRAIN_DS_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="test", stochastic=False)
+
+loader_train = DataLoader(ds_train, batch_size=VAE_BATCH_SIZE, shuffle=True)
+loader_test = DataLoader(ds_test, batch_size=VAE_BATCH_SIZE, shuffle=True)
 
 # encoded shape torch.Size([1, 128, 2, 4])
 # mean torch.Size([1, 32]) logvar torch.Size([1, 32])
@@ -40,47 +51,38 @@ loader = DataLoader(dset, batch_size=batch_size, shuffle=True)
 # x recon torch.Size([1, 3, 32, 16])
 
 
-def visualize_image(tensor, name, label=None, env='main', w=250, h=250,
-                    update_window_without_label=False):
-    title = name + ('-{}'.format(label) if label is not None else '')
-
-    _WINDOW_CASH[title] = _vis(env).image(
-        tensor.numpy(), win=_WINDOW_CASH.get(title),
-        opts=dict(title=title, width=w, height=h)
-    )
-
-    # This is useful when you want to maintain the most recent images.
-    if update_window_without_label:
-        _WINDOW_CASH[name] = _vis(env).image(
-            tensor.numpy(), win=_WINDOW_CASH.get(name),
-            opts=dict(title=name, width=w, height=h)
-        )
-
-for epoch in range(num_epochs):
-    data_stream = tqdm(enumerate(loader, 1))
-    for batch_index, (x, _) in data_stream:
-        iteration = (epoch)*(len(dset)//batch_size) + batch_index
+for epoch in range(VAE_EPOCHS):
+    data_stream = tqdm(enumerate(loader_train, 1))
+    for batch_index, batch in data_stream:
         optimizer.zero_grad()
-        (mean, logvar), x_reconstructed = vae(x)
-        reconstruction_loss = vae.reconstruction_loss(x_reconstructed, x)
+        x_combined = batch["image"]
+        x_left = x_combined[:,0:3,:,:]
+        (mean, logvar), x_reconstructed = vae(x_left)
+        reconstruction_loss = vae.reconstruction_loss(x_reconstructed, x_left)
         kl_divergence_loss = vae.kl_divergence_loss(mean, logvar)
         total_loss = reconstruction_loss + kl_divergence_loss
         total_loss.backward()
         optimizer.step()
         data_stream.set_description((
             f'epoch: {epoch} | '
-            f'iteration: {iteration} | '
-            f'progress: [{batch_index * len(x)}/{len(dset)}] ({(100. * batch_index / len(loader)):.0f}%) | '
+            f'iteration: {batch_index} | '
+            f'progress: [{batch_index * x_left.shape[0]}/{len(ds_train)}] ({(100. * batch_index / len(loader_train)):.0f}%) | '
             f'loss => '
             f'total: {total_loss.data.item():.4f} / '
             f're: {reconstruction_loss.data.item():.3f} / '
             f'kl: {kl_divergence_loss.data.item():.3f}'
         ))
-        if iteration % 500 == 0:
-            images = vae.sample(32)
-            torchvision.utils.save_image(images, f"samples/{iteration}.png", nrow=5)
-            cmb = torch.zeros((20,3,16,32))
-            cmb[0:10,:,:,:] = x[0:10,:,:,:]
-            cmb[10:,:,:,:] = x_reconstructed[0:10,:,:,:] 
-            torchvision.utils.save_image(cmb, f"recons/{iteration}.png", nrow=10)
+    # make viz
+    images = vae.sample(32)
+    if not os.path.exists(os.path.join("gen_images", VAE_LABEL)):
+        os.makedirs(os.path.join("gen_images", VAE_LABEL))
+    outpath = os.path.join("gen_images", VAE_LABEL, f"epoch-{epoch}_train_samples.png")
+    torchvision.utils.save_image(images, outpath, nrow=5)
+    cmb = torch.zeros((20,3,VAE_HEIGHT, VAE_WIDTH))
+    cmb[0:10,:,:,:] = x_left[0:10,:,:,:]
+    cmb[10:,:,:,:] = x_reconstructed[0:10,:,:,:]
+    outpath = os.path.join("gen_images", VAE_LABEL, f"epoch-{epoch}_train_recons.png")
+    torchvision.utils.save_image(cmb, outpath, nrow=10)
+
+    ## test mode
     

@@ -45,13 +45,11 @@ class LinearPilot(nn.Module):
             nn.Dropout(p=0.1)
         ) 
         if self.output_ch == 2:
-            self.fc_throttle = nn.Linear(50, len(self.throttle_bins))
-            self.fc_steer = nn.Linear(50, len(self.steer_bins))
+            self.fc_throttle = nn.Linear(50, len(self.throttle_bins) if self.stochastic else 1)
+            self.fc_steer = nn.Linear(50, len(self.steer_bins) if self.stochastic else 1)
         elif self.output_ch == 1:
-            self.fc_steer = nn.Linear(50,len(self.steer_bins))
+            self.fc_steer = nn.Linear(50,len(self.steer_bins) if self.stochastic else 1)
     
-    
-
     def forward(self, img):
         batch = img.shape[0]
         x = self.bn(img)

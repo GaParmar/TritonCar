@@ -11,3 +11,5 @@ server/training_models/
 server/VAE/samples/
 server/VAE/recons/
 server/VAE/vae_images/
+server/VAE/gen_images/
+server/SUPERVISED/output_models/
