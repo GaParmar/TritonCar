@@ -3,7 +3,7 @@
 # CAR
 CAR_LOG_PATH = "/media/usb/LOG/lab335_0"
 CAR_MODEL_PATH = "/media/usb/trained_model/cp_005_105.28.hdf5"
-CAR_REFRESH_RATE = 0.04 # in Hz
+CAR_REFRESH_RATE = 0.1 # in Hz
 CAR_CAMERA_ID = 0
 CAR_TIMEOUT_TOLERANCE = 0.1 # in seconds
 CAR_THROTTLE_ALLOWANCE = 25
@@ -29,3 +29,10 @@ TRAIN_LR = 4e-5
 
 TRAIN_SU_outpath = f"output_models/"
 TRAIN_SU_EXP_NAME = "exp0"
+
+
+PILOT_STEER_BINS = [ 90, # stay in the middle (90+0)
+                    int(90-(CAR_STEER_ALLOWANCE*0.25)), int(90+(CAR_STEER_ALLOWANCE*0.25)),
+                    int(90-(CAR_STEER_ALLOWANCE*0.50)), int(90+(CAR_STEER_ALLOWANCE*0.50)),
+                    int(90-(CAR_STEER_ALLOWANCE*0.75)), int(90+(CAR_STEER_ALLOWANCE*0.75)),
+                    int(90-(CAR_STEER_ALLOWANCE*1.00)), int(90+(CAR_STEER_ALLOWANCE*1.00))]

@@ -67,7 +67,6 @@ function main(){
 
 setInterval(()=>{
     main()
-    // post(data)
 }, 150);
 
 window.onload = function(e){ 

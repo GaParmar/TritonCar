@@ -1,11 +1,8 @@
-import os
-import sys
-import numpy as np
-import pickle 
-import argparse
-import pdb
-import cv2
+import os, sys, pdb, argparse, pickle
 from PIL import Image
+import numpy as np
+import cv2
+
 
 parser = argparse.ArgumentParser(description="unpack log pickle files")
 parser.add_argument("--log_dir", type=str, 
@@ -19,7 +16,7 @@ args = parser.parse_args()
 
 # output dir
 args.output_dir = os.path.join(args.output_dir,
-                    os.path.basename(os.path.abspath(args.log_dir)) + "_reduced")
+                    os.path.basename(os.path.abspath(args.log_dir)))
 
 log_files = []
 # get all pickle files
@@ -42,13 +39,13 @@ for log_file in log_files:
         for sample in samples:
             ts = sample["timestamp"]
             if sample["image"] is not None:
-                img = Image.fromarray(sample["image"][:,:,::-1])
+                img = Image.fromarray(sample["image"])
             else:
                 img = Image.fromarray(np.zeros((120,60,3)).astype('uint8'))
             throttle = sample["throttle"]
             steer = sample["steer"]
-            if abs(steer-90) < 10:
-                continue
+            # if abs(steer-90) < 10:
+            #     continue
             
             img = img.rotate(180)
             if(throttle != 90 or steer != 90):

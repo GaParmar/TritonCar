@@ -4,6 +4,7 @@ car/__pycache__/*
 car/__pycache__/utils.cpython-37.pyc
 
 server/OUTPUT/
+server/DATASET
 server/training_models/
 *.DS_Store
 
