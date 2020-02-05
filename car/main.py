@@ -23,9 +23,11 @@ if __name__ == "__main__":
     
     # load trained model weights
     if CAR_MODEL_PATH is not None:
-        pass
+        model = LinearPilot(output_ch=1, stochastic=False).eval()
+        model.load_state_dict(torch.load(CAR_MODEL_PATH, map_location=torch.device('cpu')))
+        model.eval()
     else:
-        auto_model = None
+        model = None
 
     ps4 = PS4Interface(connection_type=COMM_CONTROLLER_TYPE)
     camera = cv2.VideoCapture(CAR_CAMERA_ID)
@@ -93,9 +95,13 @@ if __name__ == "__main__":
 
         elif state == "autonomous":
             
-            if auto_model is not None:
-                t_img = norm_split(Image.fromarray(img))
-                pass
+            if model is not None:
+                img_pil = Image.fromarray(img)
+                img_t = norm_split(img_pil, W=IMAGE_WIDTH, H=IMAGE_HEIGHT).view(1,6,IMAGE_HEIGHT, IMAGE_WIDTH)
+                with torch.no_grad():
+                    steer = model(img_t)
+                curr_data["throttle"] = 90 - CAR_FIX_THROTTLE
+                curr_data["steer"] = steer.item()
             else:
                 curr_data["throttle"] = 90
                 curr_data["steer"] = 90
