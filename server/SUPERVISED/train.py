@@ -29,13 +29,13 @@ device = torch.device("cpu")
 
 # model = LinearPilot(output_ch=output_ch, stochastic=False).cuda()
 vae = VAE(label=VAE_LABEL,image_W=VAE_WIDTH,image_H=VAE_HEIGHT,
-            channel_num=3,kernel_num=128,z_size=VAE_ZDIM).to(device)
+            channel_num=3,kernel_num=128,z_size=VAE_ZDIM, device=device).to(device)
 VAE_PATH = "../VAE/output_models/M_lab335_z32_1.sd"
 vae.load_state_dict(torch.load(VAE_PATH, map_location=device))
 vae.eval()
-model = EncoderPilot(vae, VAE_ZDIM)
-
-opt = torch.optim.Adam(model.parameters(), lr=TRAIN_LR,
+model = EncoderPilot(vae, VAE_ZDIM).to(device)
+params = list(model.fc1.parameters()) + list(model.fc2.parameters()) + list(model.fc_out.parameters())
+opt = torch.optim.Adam(params, lr=TRAIN_LR,
                     weight_decay=1e-5)
 
 loader_train = DataLoader(ds_train, batch_size=TRAIN_BATCH_SIZE, shuffle=True)

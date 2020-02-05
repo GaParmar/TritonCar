@@ -19,6 +19,8 @@ if root_path not in sys.path:
 from config import *
 from server.dataset import CarDataset
 
+device = torch.device("cuda")
+
 vae = VAE(
     label=VAE_LABEL,
     image_W=VAE_WIDTH,
@@ -26,7 +28,8 @@ vae = VAE(
     channel_num=3,
     kernel_num=128,
     z_size=VAE_ZDIM,
-)
+    device=device
+).to(device)
 vae.train()
 optimizer = torch.optim.Adam(vae.parameters(), lr=VAE_LR,
                     weight_decay=1e-5)
@@ -49,7 +52,7 @@ for epoch in range(VAE_EPOCHS):
     for batch_index, batch in data_stream:
         optimizer.zero_grad()
         x_combined = batch["image"]
-        x_left = x_combined[:,0:3,:,:]
+        x_left = x_combined[:,0:3,:,:].to(device)
         (mean, logvar), x_reconstructed = vae(x_left)
         reconstruction_loss = vae.reconstruction_loss(x_reconstructed, x_left)
         kl_divergence_loss = vae.kl_divergence_loss(mean, logvar)

@@ -8,16 +8,16 @@ class EncoderPilot(nn.Module):
         self.VAE = VAE
         self.VAE.eval()
         self.fc1 = nn.Sequential(
-            nn.Linear(zdim, 10),
+            nn.Linear(zdim, 5),
             nn.ReLU(),
             nn.Dropout(p=0.1)
         )
         self.fc2 = nn.Sequential(
-            nn.Linear(10,10),
+            nn.Linear(5,5),
             nn.ReLU(),
             nn.Dropout(p=0.1)
         )
-        self.fc_out = nn. Linear(10,1)
+        self.fc_out = nn. Linear(5,1)
     def forward(self, img):
         encoded = self.VAE.encoder(img)
         mean, logvar = self.VAE.q(encoded)

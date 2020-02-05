@@ -19,12 +19,17 @@ from server.network import *
 from server.dataset import *
 from config import *
 
+device = torch.device("cpu")
+
 if __name__ == "__main__":
     
     # load trained model weights
     if CAR_MODEL_PATH is not None:
-        model = LinearPilot(output_ch=1, stochastic=False).eval()
-        model.load_state_dict(torch.load(CAR_MODEL_PATH, map_location=torch.device('cpu')))
+        # model = LinearPilot(output_ch=1, stochastic=False).eval()
+        vae = VAE(label=VAE_LABEL,image_W=VAE_WIDTH,image_H=VAE_HEIGHT,
+            channel_num=3,kernel_num=128,z_size=VAE_ZDIM, device=device).to(device)
+        model = EncoderPilot(vae, VAE_ZDIM).to(device)
+        model.load_state_dict(torch.load(CAR_MODEL_PATH, map_location=device))
         model.eval()
     else:
         model = None
@@ -94,7 +99,6 @@ if __name__ == "__main__":
                         log_counter += 1
 
         elif state == "autonomous":
-            
             if model is not None:
                 img_pil = Image.fromarray(img)
                 img_t = norm_split(img_pil, W=IMAGE_WIDTH, H=IMAGE_HEIGHT).view(1,6,IMAGE_HEIGHT, IMAGE_WIDTH)

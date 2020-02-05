@@ -4,13 +4,14 @@ from torch import nn
 import pdb
 
 class VAE(nn.Module):
-    def __init__(self, label, image_W, image_H, channel_num, kernel_num, z_size):
+    def __init__(self, label, image_W, image_H, channel_num, kernel_num, z_size, device):
         # configurations
         super().__init__()
         self.label = label
         self.channel_num = channel_num
         self.kernel_num = kernel_num
         self.z_size = z_size
+        self.device = device
 
         # encoder
         self.encoder = nn.Sequential(
@@ -80,7 +81,7 @@ class VAE(nn.Module):
         std = logvar.mul(0.5).exp_()
         eps = (
             Variable(torch.randn(std.size()))
-        )
+        ).to(self.device)
         return eps.mul(std).add_(mean)
 
     def reconstruction_loss(self, x_reconstructed, x):
@@ -111,12 +112,12 @@ class VAE(nn.Module):
         z = Variable(
             torch.randn(size, self.z_size).cuda() if self._is_on_cuda() else
             torch.randn(size, self.z_size)
-        )
+        ).to(self.device)
         z_projected = self.project(z).view(
             -1, self.kernel_num,
             self.feature_size_H,
             self.feature_size,
-        )
+        ).to(self.device)
         return self.decoder(z_projected).data
 
     def _is_on_cuda(self):
