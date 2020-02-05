@@ -1,6 +1,35 @@
 import torch
 from torch import nn
 
+
+class EncoderPilot(nn.Module):
+    def __init__(self, VAE, zdim, stochastic=False):
+        super().__init__()
+        self.VAE = VAE
+        self.VAE.eval()
+        self.fc1 = nn.Sequential(
+            nn.Linear(zdim, 10),
+            nn.ReLU(),
+            nn.Dropout(p=0.1)
+        )
+        self.fc2 = nn.Sequential(
+            nn.Linear(10,10),
+            nn.ReLU(),
+            nn.Dropout(p=0.1)
+        )
+        self.fc_out = nn. Linear(10,1)
+    def forward(self, img):
+        encoded = self.VAE.encoder(img)
+        mean, logvar = self.VAE.q(encoded)
+        z = self.VAE.z(mean, logvar)
+        out = self.fc1(z)
+        out = self.fc2(out)
+        out = self.fc_out(out)
+        return out
+
+
+
+
 class LinearPilot(nn.Module):
     def __init__(self, output_ch=1, stochastic=True, steer_bins=None, throttle_bins=None):
         super().__init__()

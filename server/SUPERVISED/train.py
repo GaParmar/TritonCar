@@ -14,7 +14,8 @@ if root_path not in sys.path:
 
 from config import *
 from server.dataset import CarDataset
-from server.models.pilots import LinearPilot
+from server.models.pilots import *
+from server.VAE.vae import *
 
 ds_train = CarDataset(root=TRAIN_DS_ROOT, W=IMAGE_WIDTH, H=IMAGE_HEIGHT, split="train", stochastic=False)
 ds_test = CarDataset(root=TRAIN_DS_ROOT, W=IMAGE_WIDTH, H=IMAGE_HEIGHT, split="test", stochastic=False)
@@ -24,7 +25,16 @@ if CAR_FIX_THROTTLE == -1:
 else:
     output_ch = 1
 
-model = LinearPilot(output_ch=output_ch, stochastic=False).cuda()
+device = torch.device("cpu")
+
+# model = LinearPilot(output_ch=output_ch, stochastic=False).cuda()
+vae = VAE(label=VAE_LABEL,image_W=VAE_WIDTH,image_H=VAE_HEIGHT,
+            channel_num=3,kernel_num=128,z_size=VAE_ZDIM).to(device)
+VAE_PATH = "../VAE/output_models/M_lab335_z32_1.sd"
+vae.load_state_dict(torch.load(VAE_PATH, map_location=device))
+vae.eval()
+model = EncoderPilot(vae, VAE_ZDIM)
+
 opt = torch.optim.Adam(model.parameters(), lr=TRAIN_LR,
                     weight_decay=1e-5)
 
@@ -44,8 +54,9 @@ for epoch in range(TRAIN_EPOCHS):
             mse_loss = F.mse_loss(pred_throttle, batch["throttle"])
             mse_loss += F.mse_loss(pred_steer, batch["steer"])*LAMBDA_STEER
         else:
-            pred_steer = model(batch["image"].cuda())
-            mse_loss = F.mse_loss(pred_steer, batch["steer"].view(pred_steer.shape).cuda())*LAMBDA_STEER
+            img = batch["image"][:,0:3,:,:] # only use left image
+            pred_steer = model(img.to(device))
+            mse_loss = F.mse_loss(pred_steer, batch["steer"].view(pred_steer.shape).to(device))*LAMBDA_STEER
         mse_loss.backward()
         opt.step()
         train_loss += (mse_loss.item() / len(ds_train))
@@ -60,8 +71,9 @@ for epoch in range(TRAIN_EPOCHS):
                 mse_loss = F.mse_loss(pred_throttle, batch["throttle"])
                 mse_loss += F.mse_loss(pred_steer, batch["steer"])*LAMBDA_STEER
             else:
-                pred_steer = model(batch["image"].cuda())
-                mse_loss = F.mse_loss(pred_steer, batch["steer"].view(pred_steer.shape).cuda())*LAMBDA_STEER
+                img = batch["image"][:,0:3,:,:] # only use left image
+                pred_steer = model(img.to(device))
+                mse_loss = F.mse_loss(pred_steer, batch["steer"].view(pred_steer.shape).to(device))*LAMBDA_STEER
             test_loss += (mse_loss.item() / len(ds_train))
         pbar.set_description(f"epoch: {epoch:3d}    it:{idx:4d}    test_loss: {mse_loss.item():.2f}\t\t")
     # save the model to file

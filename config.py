@@ -35,6 +35,7 @@ VAE_LR = 1e-3
 VAE_BATCH_SIZE = 32
 VAE_EPOCHS = 100
 VAE_LABEL = f"lab335_z{VAE_ZDIM}"
+VAE_outpath = "output_models"
 
 TRAIN_SU_outpath = f"output_models/"
 TRAIN_SU_EXP_NAME = "exp0"

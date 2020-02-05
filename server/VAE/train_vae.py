@@ -31,14 +31,8 @@ vae.train()
 optimizer = torch.optim.Adam(vae.parameters(), lr=VAE_LR,
                     weight_decay=1e-5)
 
-# pdb.set_trace()
 # make the dataset
 ds_train = CarDataset(root=TRAIN_DS_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="train", stochastic=False)
-# ds_train = torchvision.datasets.ImageFolder(root="../OUTPUT",
-#         transform=torchvision.transforms.Compose([
-#                 torchvision.transforms.Resize((VAE_HEIGHT, VAE_WIDTH*2)),
-#                 torchvision.transforms.ToTensor()
-#             ]))
 ds_test = CarDataset(root=TRAIN_DS_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="test", stochastic=False)
 
 loader_train = DataLoader(ds_train, batch_size=VAE_BATCH_SIZE, shuffle=True)
@@ -49,7 +43,6 @@ loader_test = DataLoader(ds_test, batch_size=VAE_BATCH_SIZE, shuffle=True)
 # z torch.Size([1, 32])
 # z_proj torch.Size([1, 128, 4, 2])
 # x recon torch.Size([1, 3, 32, 16])
-
 
 for epoch in range(VAE_EPOCHS):
     data_stream = tqdm(enumerate(loader_train, 1))
@@ -84,5 +77,6 @@ for epoch in range(VAE_EPOCHS):
     outpath = os.path.join("gen_images", VAE_LABEL, f"epoch-{epoch}_train_recons.png")
     torchvision.utils.save_image(cmb, outpath, nrow=10)
 
-    ## test mode
-    
+    # save the model to file
+    save_path = os.path.join(VAE_outpath, f"M_{VAE_LABEL}_{epoch}.sd")
+    torch.save(vae.state_dict(), save_path)

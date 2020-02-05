@@ -12,4 +12,5 @@ server/VAE/samples/
 server/VAE/recons/
 server/VAE/vae_images/
 server/VAE/gen_images/
+server/VAE/output_models/
 server/SUPERVISED/output_models/

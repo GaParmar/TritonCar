@@ -38,7 +38,8 @@ def data():
 
 @app.route("/get_host_ip", methods=["POST"])
 def get_ip():
-    host_ip = socket.gethostbyname(socket.gethostname())
+    # host_ip = socket.gethostbyname(socket.gethostname())
+    host_ip = "192.168.22.207"
     return(str(host_ip))
 
 @app.route("/init_connection", methods=["POST"])
@@ -51,7 +52,8 @@ def init_socket():
     s.bind(("", int(data["port"])))
     s.listen()
     cs, address = s.accept()
-    host_ip = socket.gethostbyname(socket.gethostname())
+    # host_ip = socket.gethostbyname(socket.gethostname())
+    host_ip = "192.168.22.207"
     return(json.dumps({"status": "success", "ip":host_ip}))
 
 if __name__ == "__main__":
