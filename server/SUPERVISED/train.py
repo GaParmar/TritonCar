@@ -24,7 +24,7 @@ if CAR_FIX_THROTTLE == -1:
 else:
     output_ch = 1
 
-model = LinearPilot(output_ch=output_ch, stochastic=False)
+model = LinearPilot(output_ch=output_ch, stochastic=False).cuda()
 opt = torch.optim.Adam(model.parameters(), lr=TRAIN_LR,
                     weight_decay=1e-5)
 
@@ -44,8 +44,8 @@ for epoch in range(TRAIN_EPOCHS):
             mse_loss = F.mse_loss(pred_throttle, batch["throttle"])
             mse_loss += F.mse_loss(pred_steer, batch["steer"])*LAMBDA_STEER
         else:
-            pred_steer = model(batch["image"])
-            mse_loss = F.mse_loss(pred_steer, batch["steer"].view(pred_steer.shape))*LAMBDA_STEER
+            pred_steer = model(batch["image"].cuda())
+            mse_loss = F.mse_loss(pred_steer, batch["steer"].view(pred_steer.shape).cuda())*LAMBDA_STEER
         mse_loss.backward()
         opt.step()
         train_loss += (mse_loss.item() / len(ds_train))
@@ -60,8 +60,8 @@ for epoch in range(TRAIN_EPOCHS):
                 mse_loss = F.mse_loss(pred_throttle, batch["throttle"])
                 mse_loss += F.mse_loss(pred_steer, batch["steer"])*LAMBDA_STEER
             else:
-                pred_steer = model(batch["image"])
-                mse_loss = F.mse_loss(pred_steer, batch["steer"].view(pred_steer.shape))*LAMBDA_STEER
+                pred_steer = model(batch["image"].cuda())
+                mse_loss = F.mse_loss(pred_steer, batch["steer"].view(pred_steer.shape).cuda())*LAMBDA_STEER
             test_loss += (mse_loss.item() / len(ds_train))
         pbar.set_description(f"epoch: {epoch:3d}    it:{idx:4d}    test_loss: {mse_loss.item():.2f}\t\t")
     # save the model to file
