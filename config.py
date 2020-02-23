@@ -33,9 +33,9 @@ VAE_WIDTH = IMAGE_WIDTH
 VAE_ZDIM = 32
 VAE_LR = 1e-3
 VAE_BATCH_SIZE = 32
-VAE_EPOCHS = 100
+VAE_EPOCHS = 2
 VAE_LABEL = f"lab335_z{VAE_ZDIM}"
-VAE_outpath = "output_models"
+VAE_outpath = "output_models_vae"
 
 TRAIN_SU_outpath = f"output_models/"
 TRAIN_SU_EXP_NAME = "exp0"

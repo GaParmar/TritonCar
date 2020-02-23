@@ -1,5 +1,6 @@
 *.pyc
 *.pyo
+
 car/__pycache__/*
 car/__pycache__/utils.cpython-37.pyc
 
@@ -12,5 +13,8 @@ server/VAE/samples/
 server/VAE/recons/
 server/VAE/vae_images/
 server/VAE/gen_images/
-server/VAE/output_models/
-server/SUPERVISED/output_models/
+server/VAE/grid.png
+server/VAE/test.png
+server/VAE/train.png
+server/VAE/output_models*/
+server/SUPERVISED/output_models*/

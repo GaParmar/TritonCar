@@ -45,26 +45,27 @@ class VAE(nn.Module):
         mean, logvar = self.q(encoded)
         return mean
 
+    def only_decode(self, z):
+        z_proj = self.project(z).view(
+            -1, self.kernel_num,
+            self.feature_size_H,
+            self.feature_size,
+        )
+        return self.decoder(z_proj)
 
     def forward(self, x):
-        # pdb.set_trace()
         # encode x
         encoded = self.encoder(x)
-        # print("encoded shape", encoded.shape)
         # sample latent code z from q given x.
         mean, logvar = self.q(encoded)
-        # print(f"mean {mean.shape} logvar {logvar.shape}")
         z = self.z(mean, logvar)
-        # print(f"z {z.shape}")
         z_projected = self.project(z).view(
             -1, self.kernel_num,
             self.feature_size_H,
             self.feature_size,
         )
-        # print(f"z_proj {z_projected.shape}")
         # reconstruct x from z
         x_reconstructed = self.decoder(z_projected)
-        # print("x recon", x_reconstructed.shape)
         # return the parameters of distribution of q given x and the
         # reconstructed image.
         return (mean, logvar), x_reconstructed

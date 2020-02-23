@@ -8,6 +8,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 import torchvision
+import matplotlib.pyplot as plt
 
 from vae import VAE
 
@@ -19,7 +20,7 @@ if root_path not in sys.path:
 from config import *
 from server.dataset import CarDataset
 
-device = torch.device("cuda")
+device = torch.device("cpu")
 
 vae = VAE(
     label=VAE_LABEL,
@@ -38,17 +39,20 @@ optimizer = torch.optim.Adam(vae.parameters(), lr=VAE_LR,
 ds_train = CarDataset(root=TRAIN_DS_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="train", stochastic=False)
 ds_test = CarDataset(root=TRAIN_DS_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="test", stochastic=False)
 
-loader_train = DataLoader(ds_train, batch_size=VAE_BATCH_SIZE, shuffle=True)
-loader_test = DataLoader(ds_test, batch_size=VAE_BATCH_SIZE, shuffle=True)
+loader_train = DataLoader(ds_train, batch_size=VAE_BATCH_SIZE,
+                            shuffle=True, pin_memory=True, 
+                            num_workers=4)
+loader_test = DataLoader(ds_test, batch_size=VAE_BATCH_SIZE, 
+                            shuffle=True, pin_memory=True, 
+                            num_workers=4)
 
-# encoded shape torch.Size([1, 128, 2, 4])
-# mean torch.Size([1, 32]) logvar torch.Size([1, 32])
-# z torch.Size([1, 32])
-# z_proj torch.Size([1, 128, 4, 2])
-# x recon torch.Size([1, 3, 32, 16])
+all_train_losses = []
+all_test_losses = []
 
 for epoch in range(VAE_EPOCHS):
     data_stream = tqdm(enumerate(loader_train, 1))
+    train_epoch_loss, test_epoch_loss = 0.0, 0.0
+    vae.train()
     for batch_index, batch in data_stream:
         optimizer.zero_grad()
         x_combined = batch["image"]
@@ -59,6 +63,7 @@ for epoch in range(VAE_EPOCHS):
         total_loss = reconstruction_loss + kl_divergence_loss
         total_loss.backward()
         optimizer.step()
+        train_epoch_loss+=total_loss.item()
         data_stream.set_description((
             f'epoch: {epoch} | '
             f'iteration: {batch_index} | '
@@ -68,6 +73,24 @@ for epoch in range(VAE_EPOCHS):
             f're: {reconstruction_loss.data.item():.3f} / '
             f'kl: {kl_divergence_loss.data.item():.3f}'
         ))
+    print(f"epoch: {epoch} total loss: {train_epoch_loss}")
+
+    data_stream = tqdm(enumerate(loader_test, 1))
+    vae.eval()
+    test_epoch_loss = 0.0
+    for batch_index, batch in data_stream:  
+        with torch.no_grad():
+            x_left = batch["image"][:,0:3,:,:].to(device)
+            _, x_rec = vae(x_left)
+            rec_loss = vae.reconstruction_loss(x_rec, x_left)
+            test_epoch_loss+=rec_loss.item()
+
+    train_epoch_loss /= len(loader_train)
+    test_epoch_loss /= len(loader_test)
+    all_train_losses.append(train_epoch_loss)
+    all_test_losses.append(test_epoch_loss)
+
+
     # make viz
     images = vae.sample(32)
     if not os.path.exists(os.path.join("gen_images", VAE_LABEL)):
@@ -81,5 +104,14 @@ for epoch in range(VAE_EPOCHS):
     torchvision.utils.save_image(cmb, outpath, nrow=10)
 
     # save the model to file
+    if not os.path.exists(VAE_outpath):
+        os.makedirs(VAE_outpath)
     save_path = os.path.join(VAE_outpath, f"M_{VAE_LABEL}_{epoch}.sd")
     torch.save(vae.state_dict(), save_path)
+
+# plot the losses
+plt.plot(all_train_losses, label="train loss")
+plt.plot(all_test_losses, label="test loss")
+plt.legend()
+save_path = os.path.join(VAE_outpath, f"losses_{VAE_LABEL}.png")
+plt.savefig(save_path)
