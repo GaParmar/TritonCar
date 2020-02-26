@@ -2,6 +2,8 @@
 
 # donkey_adapter or triton_car
 MODE = "donkey_adapter"
+CROP_TOP = 10
+CROP_BOT = 35
 
 # CAR
 CAR_LOG_PATH = "/media/usb/LOG/lab335_0"
@@ -25,7 +27,7 @@ IMAGE_HEIGHT = 80
 IMAGE_CH = 6
 
 # TRAINING
-TRAIN_DS_ROOT = "tub_5_20-01-14"
+TRAIN_DS_ROOT = "/content/tub_5_20-01-14"
 TRAIN_EPOCHS = 100
 TRAIN_BATCH_SIZE = 32
 TRAIN_LR = 1e-4

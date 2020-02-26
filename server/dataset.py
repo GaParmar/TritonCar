@@ -14,23 +14,34 @@ from config import *
 # crop the top height (remove top 40 pixels)
 # final - 160x80
 def norm_split(img, W, H):
-    # crop off the top 1/4 (60 pixels) of the image
-    img = img.crop((0,60,640,240))
-    w,h = img.size
-    left_pil = img.crop((0,0,int(w/2),h)).resize([W,H])
-    right_pil = img.crop((int(w/2),0,w,h)).resize([W,H])
-    # ToTensor convers to range [0,1]
-    left_t = transforms.ToTensor()(left_pil)
-    right_t = transforms.ToTensor()(right_pil)
-    cmb = torch.cat((left_t, right_t), dim=0)
-    return cmb
+    if MODE == "donkey_adapter":
+        img = img.resize([W,H])
+        w,h = img.size
+        # crop off bottom 35 and top 10
+        img = img.crop((0, CROP_TOP, w,h-CROP_BOT))
+        img_t = transforms.ToTensor()(img)
+        return img_t
+
+    else:
+        # crop off the top 1/4 (60 pixels) of the image
+        img = img.crop((0,60,640,240))
+        w,h = img.size
+        left_pil = img.crop((0,0,int(w/2),h)).resize([W,H])
+        right_pil = img.crop((int(w/2),0,w,h)).resize([W,H])
+        # ToTensor convers to range [0,1]
+        left_t = transforms.ToTensor()(left_pil)
+        right_t = transforms.ToTensor()(right_pil)
+        cmb = torch.cat((left_t, right_t), dim=0)
+        return cmb
+
+def norm_crop()
 
 def make_label(path):
-    if TYPE == "triton_car":
+    if MODE == "triton_car":
         label_str = os.path.basename(path).replace(".png","").split("_")
         throttle = float(label_str[-2])
         steer = float(label_str[-1])
-    elif TYPE == "donkey_adapter":
+    elif MODE == "donkey_adapter":
         with open(path) as f:
             data = json.load(f)
         throttle = data["user/throttle"]
@@ -75,9 +86,9 @@ class CarDataset(Dataset):
                     "path"       : self.all_files[idx]}
     
         sample["image"] = self.transform_image(sample["image"], W=self.W, H=self.H)
-        if TTYPE == "donkey_adapter":
+        if MODE == "donkey_adapter":
             pass # do nothing, it is already transformed
-        elif TYPE == "triton_car":
+        elif MODE == "triton_car":
             sample["throttle"] = convert_label(sample["throttle"], PILOT_THROTTLE_BINS) if self.stochastic else sample["throttle"]
             sample["steer"] = convert_label(sample["steer"], PILOT_STEER_BINS) if self.stochastic else sample["steer"]
         return sample
