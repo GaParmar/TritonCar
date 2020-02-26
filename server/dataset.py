@@ -1,4 +1,4 @@
-import os, sys, time, math, pdb
+import os, sys, time, math, pdb, json
 import random
 import numpy as np
 from PIL import Image
@@ -26,9 +26,15 @@ def norm_split(img, W, H):
     return cmb
 
 def make_label(path):
-    label_str = os.path.basename(path).replace(".png","").split("_")
-    throttle = float(label_str[-2])
-    steer = float(label_str[-1])
+    if TYPE == "triton_car":
+        label_str = os.path.basename(path).replace(".png","").split("_")
+        throttle = float(label_str[-2])
+        steer = float(label_str[-1])
+    elif TYPE == "donkey_adapter":
+        with open(path) as f:
+            data = json.load(f)
+        throttle = data["user/throttle"]
+        steer = data["user/angle"]
     return throttle, steer
 
 
@@ -48,7 +54,7 @@ class CarDataset(Dataset):
         self.H = H
         # make a list of all file
         for f in os.listdir(os.path.join(root)):
-            if ".png" in f:
+            if ".png" in f or ".jpg":
                 self.all_files.append(os.path.join(root, f))
         self.all_files.sort()
         # if it is train set use the first 90% of the dataset
@@ -69,8 +75,11 @@ class CarDataset(Dataset):
                     "path"       : self.all_files[idx]}
     
         sample["image"] = self.transform_image(sample["image"], W=self.W, H=self.H)
-        sample["throttle"] = convert_label(sample["throttle"], PILOT_THROTTLE_BINS) if self.stochastic else sample["throttle"]
-        sample["steer"] = convert_label(sample["steer"], PILOT_STEER_BINS) if self.stochastic else sample["steer"]
+        if TTYPE == "donkey_adapter":
+            pass # do nothing, it is already transformed
+        elif TYPE == "triton_car":
+            sample["throttle"] = convert_label(sample["throttle"], PILOT_THROTTLE_BINS) if self.stochastic else sample["throttle"]
+            sample["steer"] = convert_label(sample["steer"], PILOT_STEER_BINS) if self.stochastic else sample["steer"]
         return sample
 
 

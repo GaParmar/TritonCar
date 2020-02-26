@@ -1,5 +1,8 @@
 # all configuration options to be defined here
 
+# donkey_adapter or triton_car
+MODE = "donkey_adapter"
+
 # CAR
 CAR_LOG_PATH = "/media/usb/LOG/lab335_0"
 CAR_MODEL_PATH = "/media/usb/trained_model/cp_005_105.28.hdf5"
@@ -22,15 +25,19 @@ IMAGE_HEIGHT = 80
 IMAGE_CH = 6
 
 # TRAINING
-TRAIN_DS_ROOT = "../OUTPUT/lab335_0"
+TRAIN_DS_ROOT = "tub_5_20-01-14"
 TRAIN_EPOCHS = 100
 TRAIN_BATCH_SIZE = 32
 TRAIN_LR = 1e-4
 LAMBDA_STEER = 2.0
 
-VAE_HEIGHT = IMAGE_HEIGHT
-VAE_WIDTH = IMAGE_WIDTH
-VAE_ZDIM = 32
+if MODE == "donkey_adapter":
+    VAE_HEIGHT = 180
+    VAE_WIDTH = 320
+else:
+    VAE_HEIGHT = IMAGE_HEIGHT
+    VAE_WIDTH = IMAGE_WIDTH
+VAE_ZDIM = 16
 VAE_LR = 1e-3
 VAE_BATCH_SIZE = 32
 VAE_EPOCHS = 2
