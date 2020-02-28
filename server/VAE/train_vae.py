@@ -20,12 +20,12 @@ if root_path not in sys.path:
 from config import *
 from server.dataset import CarDataset
 
-device = torch.device("cpu")
+device = torch.device("cuda")
 
 vae = VAE(
     label=VAE_LABEL,
     image_W=VAE_WIDTH,
-    image_H=VAE_HEIGHT,
+    image_H=VAE_HEIGHT-CROP_TOP-CROP_BOT,
     channel_num=3,
     kernel_num=128,
     z_size=VAE_ZDIM,
@@ -56,7 +56,10 @@ for epoch in range(VAE_EPOCHS):
     for batch_index, batch in data_stream:
         optimizer.zero_grad()
         x_combined = batch["image"]
-        x_left = x_combined[:,0:3,:,:].to(device)
+        if MODE == "donkey_adapter":
+            x_left = x_combined.to(device)
+        else:
+            x_left = x_combined[:,0:3,:,:].to(device)
         (mean, logvar), x_reconstructed = vae(x_left)
         reconstruction_loss = vae.reconstruction_loss(x_reconstructed, x_left)
         kl_divergence_loss = vae.kl_divergence_loss(mean, logvar)

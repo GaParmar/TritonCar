@@ -34,7 +34,6 @@ def norm_split(img, W, H):
         cmb = torch.cat((left_t, right_t), dim=0)
         return cmb
 
-def norm_crop()
 
 def make_label(path):
     if MODE == "triton_car":
@@ -42,6 +41,9 @@ def make_label(path):
         throttle = float(label_str[-2])
         steer = float(label_str[-1])
     elif MODE == "donkey_adapter":
+        idx = os.path.basename(path).split("_")[0]
+        rfile = f"record_{idx}.json"
+        path = path.replace(os.path.basename(path), rfile)
         with open(path) as f:
             data = json.load(f)
         throttle = data["user/throttle"]
@@ -65,7 +67,7 @@ class CarDataset(Dataset):
         self.H = H
         # make a list of all file
         for f in os.listdir(os.path.join(root)):
-            if ".png" in f or ".jpg":
+            if ".png" in f or ".jpg" in f:
                 self.all_files.append(os.path.join(root, f))
         self.all_files.sort()
         # if it is train set use the first 90% of the dataset
@@ -84,7 +86,6 @@ class CarDataset(Dataset):
                     "throttle"   : torch.tensor(throttle).float(),
                     "steer"      : torch.tensor(steer).float(),
                     "path"       : self.all_files[idx]}
-    
         sample["image"] = self.transform_image(sample["image"], W=self.W, H=self.H)
         if MODE == "donkey_adapter":
             pass # do nothing, it is already transformed

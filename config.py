@@ -3,7 +3,7 @@
 # donkey_adapter or triton_car
 MODE = "donkey_adapter"
 CROP_TOP = 10
-CROP_BOT = 35
+CROP_BOT = 50
 
 # CAR
 CAR_LOG_PATH = "/media/usb/LOG/lab335_0"
@@ -14,7 +14,7 @@ CAR_TIMEOUT_TOLERANCE = 0.1 # in seconds
 CAR_THROTTLE_ALLOWANCE = 25
 CAR_STEER_ALLOWANCE = 35
 CAR_SAMPLES_PER_FILE = 100 # num of samples for each log file
-CAR_FIX_THROTTLE = 3 # -1 for disabling this
+CAR_FIX_THROTTLE = -1 # -1 for disabling this
 
 
 # COMMUNICATION
@@ -27,7 +27,7 @@ IMAGE_HEIGHT = 80
 IMAGE_CH = 6
 
 # TRAINING
-TRAIN_DS_ROOT = "/content/tub_5_20-01-14"
+TRAIN_DATASETS_ROOT = "/content/tub_5_20-01-14"
 TRAIN_EPOCHS = 100
 TRAIN_BATCH_SIZE = 32
 TRAIN_LR = 1e-4
@@ -48,6 +48,9 @@ VAE_outpath = "output_models_vae"
 
 TRAIN_SU_outpath = f"output_models/"
 TRAIN_SU_EXP_NAME = "exp0"
+
+## pilot training (after VAE training)
+BEST_VAE_PATH = "../VAE/output_models/M_lab335_z32_1.sd"
 
 
 PILOT_STEER_BINS = [ 90, # stay in the middle (90+0)
