@@ -36,8 +36,8 @@ optimizer = torch.optim.Adam(vae.parameters(), lr=VAE_LR,
                     weight_decay=1e-5)
 
 # make the dataset
-ds_train = CarDataset(root=TRAIN_DS_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="train", stochastic=False)
-ds_test = CarDataset(root=TRAIN_DS_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="test", stochastic=False)
+ds_train = CarDataset(root=TRAIN_DATASET_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="train", stochastic=False)
+ds_test = CarDataset(root=TRAIN_DATASET_ROOT, W=VAE_WIDTH, H=VAE_HEIGHT, split="test", stochastic=False)
 
 loader_train = DataLoader(ds_train, batch_size=VAE_BATCH_SIZE,
                             shuffle=True, pin_memory=True, 
