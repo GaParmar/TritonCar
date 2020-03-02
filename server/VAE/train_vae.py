@@ -25,7 +25,7 @@ device = torch.device("cuda")
 vae = VAE(
     label=VAE_LABEL,
     image_W=VAE_WIDTH,
-    image_H=VAE_HEIGHT-CROP_TOP-CROP_BOT,
+    image_H=VAE_HEIGHT,
     channel_num=3,
     kernel_num=128,
     z_size=VAE_ZDIM,
@@ -100,7 +100,7 @@ for epoch in range(VAE_EPOCHS):
         os.makedirs(os.path.join("gen_images", VAE_LABEL))
     outpath = os.path.join("gen_images", VAE_LABEL, f"epoch-{epoch}_train_samples.png")
     torchvision.utils.save_image(images, outpath, nrow=5)
-    cmb = torch.zeros((20,3,VAE_HEIGHT-CROP_TOP-CROP_BOT, VAE_WIDTH))
+    cmb = torch.zeros((20,3,VAE_HEIGHT, VAE_WIDTH))
     cmb[0:10,:,:,:] = x_left[0:10,:,:,:]
     cmb[10:,:,:,:] = x_reconstructed[0:10,:,:,:]
     outpath = os.path.join("gen_images", VAE_LABEL, f"epoch-{epoch}_train_recons.png")
@@ -109,8 +109,10 @@ for epoch in range(VAE_EPOCHS):
     # save the model to file
     if not os.path.exists(VAE_outpath):
         os.makedirs(VAE_outpath)
-    save_path = os.path.join(VAE_outpath, f"M_{VAE_LABEL}_{epoch}.sd")
-    torch.save(vae.state_dict(), save_path)
+    
+    if epoch %10 == 0:
+        save_path = os.path.join(VAE_outpath, f"M_{VAE_LABEL}_{epoch}.sd")
+        torch.save(vae.state_dict(), save_path)
 
 # plot the losses
 plt.plot(all_train_losses, label="train loss")
