@@ -100,7 +100,7 @@ for epoch in range(VAE_EPOCHS):
         os.makedirs(os.path.join("gen_images", VAE_LABEL))
     outpath = os.path.join("gen_images", VAE_LABEL, f"epoch-{epoch}_train_samples.png")
     torchvision.utils.save_image(images, outpath, nrow=5)
-    cmb = torch.zeros((20,3,VAE_HEIGHT, VAE_WIDTH))
+    cmb = torch.zeros((20,3,VAE_HEIGHT-CROP_TOP-CROP_BOT, VAE_WIDTH))
     cmb[0:10,:,:,:] = x_left[0:10,:,:,:]
     cmb[10:,:,:,:] = x_reconstructed[0:10,:,:,:]
     outpath = os.path.join("gen_images", VAE_LABEL, f"epoch-{epoch}_train_recons.png")
