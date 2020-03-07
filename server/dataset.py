@@ -72,9 +72,9 @@ class CarDataset(Dataset):
         self.all_files.sort()
         # if it is train set use the first 90% of the dataset
         if split == "train":
-            self.all_files = self.all_files[0:int(len(self.all_files)*0.9)]
+            self.all_files = self.all_files[0:int(len(self.all_files)*0.8)]
         elif split == "test":
-            self.all_files = self.all_files[int(len(self.all_files)*0.9):]
+            self.all_files = self.all_files[int(len(self.all_files)*0.8):]
         self.transform_image = norm_split
     
     def __len__(self):
