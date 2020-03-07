@@ -16,8 +16,8 @@ from config import *
 from server.dataset import CarDataset
 from server.models.pilots import *
 
-ds_train = CarDataset(root=TRAIN_DS_ROOT, W=IMAGE_WIDTH, H=IMAGE_HEIGHT, split="train", stochastic=False)
-ds_test = CarDataset(root=TRAIN_DS_ROOT, W=IMAGE_WIDTH, H=IMAGE_HEIGHT, split="test", stochastic=False)
+ds_train = CarDataset(root=TRAIN_DATASET_ROOT, W=IMAGE_WIDTH, H=IMAGE_HEIGHT, split="train", stochastic=False)
+ds_test = CarDataset(root=TRAIN_DATASET_ROOT, W=IMAGE_WIDTH, H=IMAGE_HEIGHT, split="test", stochastic=False)
 
 output_ch = 2
 
@@ -38,24 +38,27 @@ for epoch in range(TRAIN_EPOCHS):
         opt.zero_grad()
         # batch["image"] is [B, C, H, W]
         # batch["throttle"].shape == batch["steer"].shape == [32,1]
-        pred_throttle, pred_steer = model(batch["image"])
-        mse_loss = F.mse_loss(pred_throttle, batch["throttle"])
-        mse_loss += F.mse_loss(pred_steer, batch["steer"])*LAMBDA_STEER
+        img = batch["image"][:,0:3,:,:].to(device)
+        # pdb.set_trace()
+        pred_throttle, pred_steer = model(img)
+        mse_loss = F.mse_loss(pred_throttle.view(-1), batch["throttle"].to(device))
+        mse_loss += F.mse_loss(pred_steer.view(-1), batch["steer"].to(device))*LAMBDA_STEER
         mse_loss.backward()
         opt.step()
-        train_loss += (mse_loss.item() / len(ds_train))
+        train_loss += mse_loss.item()
         pbar.set_description(f"epoch: {epoch:3d}    it:{idx:4d}    train_loss:{mse_loss.item():.2f}\t\t")
     test_loss = 0.0
     model = model.eval()
     pbar = tqdm(enumerate(loader_test, 1))
     for idx, batch in pbar:
         with torch.no_grad():
-            pred_throttle, pred_steer = model(batch["image"])
-            mse_loss = F.mse_loss(pred_throttle, batch["throttle"])
-            mse_loss += F.mse_loss(pred_steer, batch["steer"])*LAMBDA_STEER
-            test_loss += (mse_loss.item() / len(ds_train))
+            img = batch["image"][:,0:3,:,:].to(device)
+            pred_throttle, pred_steer = model(img)
+            mse_loss = F.mse_loss(pred_throttle.view(-1), batch["throttle"].to(device))
+            mse_loss += F.mse_loss(pred_steer.view(-1), batch["steer"].to(device))*LAMBDA_STEER
+            test_loss += mse_loss.item()
         pbar.set_description(f"epoch: {epoch:3d}    it:{idx:4d}    test_loss: {mse_loss.item():.2f}\t\t")
     # save the model to file
     #save_path = os.path.join(TRAIN_SU_outpath, f"M_{TRAIN_SU_EXP_NAME}_{epoch}_testL_{test_loss:.2f}.sd")
     #torch.save(model.state_dict(), save_path)
-    #print(f"{epoch}:: mean train_loss: {train_loss:.2f}    test_loss: {test_loss:.2f}")
+    print(f"{epoch}:: total train_loss: {train_loss:.2f}    test_loss: {test_loss:.2f}")

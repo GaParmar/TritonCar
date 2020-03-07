@@ -37,9 +37,9 @@ class LinearPilot(nn.Module):
         self.stochastic = stochastic
         self.steer_bins = steer_bins
         self.throttle_bins = throttle_bins
-        self.bn = nn.BatchNorm2d(6)
+        self.bn = nn.BatchNorm2d(3)
         self.conv2d_1 = nn.Sequential(
-                            nn.Conv2d(6, 24,kernel_size=5, stride=2, padding=0,),
+                            nn.Conv2d(3, 24,kernel_size=5, stride=2, padding=0,),
                             nn.ReLU(),
                             nn.Dropout2d(p=0.1))
         self.conv2d_2 = nn.Sequential(

@@ -17,7 +17,7 @@ def norm_split(img, W, H):
     if MODE == "donkey_adapter":
         w,h = img.size
         # crop off bottom and top 
-        img = img.crop((0, CROP_TOP, w,h-CROP_BOT))
+        # img = img.crop((0, CROP_TOP, w,h-CROP_BOT))
         img = img.resize([W,H])
         img_t = transforms.ToTensor()(img)
         return img_t
