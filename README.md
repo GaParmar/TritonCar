@@ -22,12 +22,21 @@ Open source framework for autonomous RC car
  - can monitor raw joystick data by `jstest /dev/input/js0`
 
 ## Web socket framework
- - socket communication over port 8080
+ - socket communication is over port 8080
+ - A packer is a byte string that starts with `<S>` and ends with `\n`
+ - `utf-8` encoding is used
+ - Open the port on SBC with the command `sudo ufw allow 8090 && sudo ufw enable && sudo reboot`
+ - Launch the portal on the laptop with the command `python laptop/bt_server.py`
+ - Open `http://127.0.0.1:5000/` in a browser window
+
+## References
+ - [Socket Communication](https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/)
+<!--  - 
  - packet size is a byte string that starts with <S> and ends with new line character
  - encoding utf8
- - open port on RPI with the commend `sudo ufw allow 8090 && sudo ufw enable && sudo reboot`
+ - open port on RPI with the commend 
  - launch server on the laptop `python3 laptop/bt_server.py`
  - browse to *http://127.0.0.1:5000/* in google chrome
 
- ### References
-  - https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/
+## References
+  - https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/ -->
