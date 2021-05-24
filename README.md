@@ -1,5 +1,5 @@
 # TritonCar
-Open source framework for autonomous RC car
+The framework for training an autonomous RC car with Imitation Learning
 
 ## PS4 controls
  - **throttle:** left joystick up/down
