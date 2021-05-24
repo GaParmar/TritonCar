@@ -23,17 +23,11 @@ Open source framework for autonomous RC car
 
 ## Web socket framework
  - socket communication over port 8080
- - packet size is a byte string that starts with <S> and ends with \n
- - encoding utf-8
+ - packet size is a byte string that starts with <S> and ends with new line character
+ - encoding utf8
  - open port on RPI with the commend `sudo ufw allow 8090 && sudo ufw enable && sudo reboot`
  - launch server on the laptop `python3 laptop/bt_server.py`
  - browse to *http://127.0.0.1:5000/* in google chrome
-
-## TODO
- - docker image for raspberry pi
- - docker image for training server - pytorch and keras versions
- - inference mode switching between keras and pytorch
- - added setup steps
 
  ### References
   - https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/
